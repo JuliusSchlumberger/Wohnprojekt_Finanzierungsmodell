@@ -1,0 +1,20 @@
+{
+  "horizon_years": 35,
+  "compare_years": 30,
+  "rent_per_m2_month": 25.0,
+  "private_area_m2": 400,
+  "common_area_m2": 600,
+  "persons": 20,
+  "maintenance_per_m2_year": 21.6,
+  "vacancy_rate": 0.02,
+  "inflation": 0.02,
+  "indexation_start_year": 6,
+  "admin_cost_per_year": 4000,
+  "insurance_per_year": 2500,
+  "investment": 2400000,
+  "equity": 144000,
+  "start_liquidity": 60000,
+  "direct_loan": {"amount": 456000, "interest_rate": 0.01},
+  "bank_loan": {"amount": 1500000, "interest_rate": 0.038, "term_years": 30},
+  "subsidy_loan": {"amount": 360000, "interest_rate": 0.015, "term_years": 30}
+}

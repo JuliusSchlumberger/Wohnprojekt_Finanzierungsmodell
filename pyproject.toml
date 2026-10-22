@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "wohnprojekt-dashboard"
+version = "0.1.0"
+description = "Financing scenarios for collectively owned housing projects"
+requires-python = ">=3.12"
+dependencies = ["numpy", "pandas"]
+
+[project.optional-dependencies]
+app = ["panel>=1.5", "plotly"]
+dev = ["pytest", "openpyxl", "ruff"]
+
+[tool.setuptools]
+packages = ["model"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = ["reference: needs the trias Excel in reference/"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]

@@ -1,0 +1,15 @@
+name: wohnprojekt
+channels:
+  - conda-forge
+dependencies:
+  - python=3.12
+  - numpy
+  - pandas
+  - panel>=1.5
+  - plotly
+  - pytest
+  - openpyxl
+  - ruff
+  - pip
+  - pip:
+      - -e .

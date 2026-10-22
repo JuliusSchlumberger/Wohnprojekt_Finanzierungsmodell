@@ -1,0 +1,5 @@
+- model/solve.py: `max_investment` (mode 3) and `member_view` (mode 2), spec steps 5.
+- model/cashflow.py: maintenance reserve pot (spec 3.2 step 4) not tracked; with withdrawals = contributions it is always zero.
+- model/cashflow.py: `_run` loops over years per tranche; vectorize over samples for uncertainty (spec 3.4, < 5 s with n = 300).
+- model/presets.py: scenario JSON presets and legal-form presets (spec 4.5, 4.6), step 6.
+- model/cashflow.py: needs decision before mode 2: with indexed rent, year 1 is the tightest year and liquidity then grows every year (~3.8 M EUR nominal by year 50 in example_scenario); A4 only redirects freed bank/subsidy debt service, not this surplus.
