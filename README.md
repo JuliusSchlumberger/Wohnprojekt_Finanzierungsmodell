@@ -33,7 +33,8 @@ table = simulate(s, rent).table  # one row per year
 model/        calculation core (no UI): types, cashflow, solve, presets, member,
               uncertainty
 app/          Panel dashboard: main (pages), widgets (inputs), charts (Plotly), layout
-              (tiles, boxes), methodik.md (text of the methodology page)
+              (tiles, boxes), i18n (language and number formats)
+app/locale/  UI texts in German, English and Dutch, plus the methodology page per language
 scripts/      build_site.py (browser version), site_entry.py (its entry point)
 .github/      workflow: test, build and publish on GitHub Pages
 tests/        unit tests and trias reference test

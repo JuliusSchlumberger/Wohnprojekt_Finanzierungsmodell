@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 
-from model.cashflow import min_headroom
+from model.cashflow import _run, min_headroom
 from model.types import Scenario
 
 RENT_BRACKET_EUR_PERSON = (0.0, 5_000.0)
@@ -82,3 +82,23 @@ def max_investment(
         else:
             hi = mid
     return lo
+
+
+def binding_year(
+    scenario: Scenario, rent_per_person: float, step: float = 0.05
+) -> tuple[int, str] | None:
+    """Year that fixes the required rent and why: first failure at a slightly lower rent.
+
+    Returns (year, "reserve") if liquidity would fall below the reserve, or
+    (year, "arrears") if a deferred repayment would stay open too long; None
+    if even a rent of zero would do.
+    """
+    if rent_per_person - step < 0:
+        return None
+    raw = _run(scenario, rent_per_person - step)
+    for t in range(1, scenario.horizon_years + 1):
+        if raw["headroom"][t] < -HEADROOM_TOLERANCE_EUR:
+            return t, "reserve"
+        if raw["arrears_overdue"][t] > 0:
+            return t, "arrears"
+    return None

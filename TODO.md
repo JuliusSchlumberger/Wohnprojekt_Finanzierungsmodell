@@ -2,3 +2,5 @@
 - model/cashflow.py:42: `cost_index` is 1.02 in year 1, so the rent "in year 1" (input, KPIs) is charged x(1+inflation) in year 1; decide whether the input means year 0 or year 1 prices.
 - app/main.py: scenario and legal-form presets (spec 4.5, 4.6) deferred by decision; scenarios/ is empty.
 - app/main.py: scenario comparison page and JSON export/import (spec 4.2 page 5, step 6) deferred by decision.
+- app/locale/nl.py: Dutch texts are machine-quality translations by the assistant; have a native speaker review terms (erfpacht, directe leningen, inleg).
+- app/widgets.py:36: euro input fields (FloatInput, numbro format "0,0") show 540,000 in every language; German/Dutch would expect 540.000.

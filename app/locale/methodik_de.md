@@ -31,7 +31,7 @@ dazu Rückzahlungen fälliger Direkt- und Mitgliederdarlehen und die Verwendung 
 - **Förderdarlehen**: Annuität mit festem Zins.
 - **Direktkredite**: Zinsen jährlich, Rückzahlung am Ende der Laufzeit (5 oder 10 Jahre).
 - **Mitgliederdarlehen**: Zinsen werden gutgeschrieben (Zinseszins), Rückzahlung samt
-  Zinsen nach 15 Jahren.
+  Zinsen am Ende der Laufzeit (Standard 15 Jahre, einstellbar unter „Erweitert“).
 - **Rückstände**: Würde eine fällige Rückzahlung das Konto unter die Mindestreserve drücken,
   wird nur der mögliche Teil gezahlt. Der Rest wird so schnell wie möglich nachgezahlt,
   älteste zuerst, verzinst sich bis dahin und muss innerhalb der eingestellten Frist
@@ -63,7 +63,7 @@ dazu Rückzahlungen fälliger Direkt- und Mitgliederdarlehen und die Verwendung 
   Modus 2 betrachtet ein einzelnes Mitglied, das nicht auf die Projektfinanzierung
   zurückwirkt.
 - **Feste Darlehensarten**: Direktkredite mit 5 und 10 Jahren, Mitgliederdarlehen mit
-  15 Jahren, ein Bank- und ein Förderdarlehen. Darlehen werden nicht vorzeitig gekündigt,
+  einstellbarer Laufzeit, ein Bank- und ein Förderdarlehen. Darlehen werden nicht vorzeitig gekündigt,
   und nach Fälligkeit wird kein Ersatz aufgenommen.
 - **Erwartungswerte**: Abgesehen von der Unsicherheitsseite wird mit festen Werten
   gerechnet; Leerstand, Zinsänderungen und Inflation sind Annahmen, keine Prognosen.

@@ -9,6 +9,7 @@ import panel as pn
 import plotly.graph_objects as go
 
 from app.charts import INK, INK_SECONDARY, SERIES, SURFACE, figure_table
+from app.i18n import Translator
 
 ACCENT = SERIES[0]
 BORDER = "#e3e2de"
@@ -63,32 +64,33 @@ def kpi_grid(kpis: list[Kpi]) -> pn.viewable.Viewable:
     return pn.FlexBox(*(kpi_tile(k) for k in kpis), sizing_mode="stretch_width")
 
 
-VALUE_FORMATS = {
-    "eur": lambda v: f"{v:,.0f} €".replace(",", "."),
-    "count": lambda v: f"{v:.0f}",
-    "ratio": lambda v: f"{v:.2f}".replace(".", ","),
-}
+def _value_formats(tr: Translator) -> dict:
+    return {
+        "eur": tr.eur,
+        "count": lambda v: f"{v:.0f}",
+        "ratio": lambda v: tr.number(v, 2),
+    }
 
 
-def _table_pane(table: pd.DataFrame, value_format: str) -> pn.viewable.Viewable:
-    fmt = VALUE_FORMATS[value_format]
+def _table_pane(table: pd.DataFrame, value_format: str, tr: Translator) -> pn.viewable.Viewable:
+    formats = _value_formats(tr)
+    fmt = formats[value_format]
     formatted = table.map(lambda v: "" if pd.isna(v) else fmt(v))
     if table.index.dtype.kind == "f":
-        formatted.index = [VALUE_FORMATS["eur"](v) for v in table.index]
-    formatted.index.name = "Jahr" if table.index.dtype.kind in "iu" else ""
+        formatted.index = [formats["eur"](v) for v in table.index]
+    formatted.index.name = tr("ui.year") if table.index.dtype.kind in "iu" else ""
     return pn.pane.DataFrame(formatted, max_height=320, sizing_mode="stretch_width")
 
 
-def chart_block(fig: go.Figure, help_text: str, value_format: str = "eur") -> pn.viewable.Viewable:
+def chart_block(
+    fig: go.Figure, help_text: str, tr: Translator, value_format: str = "eur"
+) -> pn.viewable.Viewable:
     """A chart with its reading guide and its values as a table, both on demand."""
     return pn.Column(
         pn.pane.Plotly(fig, sizing_mode="stretch_width", config={"displaylogo": False}),
         pn.Accordion(
-            (
-                "Wie lese ich diese Grafik?",
-                pn.pane.Markdown(help_text, sizing_mode="stretch_width"),
-            ),
-            ("Werte als Tabelle", _table_pane(figure_table(fig), value_format)),
+            (tr("ui.how_to_read"), pn.pane.Markdown(help_text, sizing_mode="stretch_width")),
+            (tr("ui.values_table"), _table_pane(figure_table(fig), value_format, tr)),
             active=[],
             sizing_mode="stretch_width",
         ),

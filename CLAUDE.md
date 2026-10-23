@@ -1,6 +1,8 @@
 # Repo facts
 
-- Spec: docs/spec.md (German). UI text German; code, names, docstrings English.
+- Spec: docs/spec.md (German). UI texts live in `app/locale/{de,en,nl}.py` (keys, German is the
+  reference) and `app/locale/methodik_*.md`; code, names, docstrings English. A new UI text needs
+  a key in all three files (`tests/test_i18n.py` checks keys and placeholders).
 - Env: `conda env create -f environment.yml` → env `wohnprojekt` (Python 3.12).
 - Entry points: `model.simulate(scenario, rent_per_person)`, `model.required_rent(scenario)`,
   `model.max_investment(...)`, `model.member.member_view(...)`,

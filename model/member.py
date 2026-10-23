@@ -10,8 +10,6 @@ import pandas as pd
 from model.cashflow import Result
 from model.types import Scenario
 
-MEMBER_LOAN_TERM_YEARS = 15
-
 
 @dataclass(frozen=True)
 class MemberInputs:
@@ -19,7 +17,8 @@ class MemberInputs:
 
     `equity` is in money of year 0 and is paid in and repaid inflation-indexed
     (A5). `member_loan` is lent at entry, accrues `member_loan_rate` and is
-    repaid after 15 years or in the year after exit, whichever comes first.
+    repaid after `member_loan_term_years` or in the year after exit, whichever
+    comes first.
     `market_rent` is EUR per month in the unit of the project rent input and
     is indexed like it.
     `alt_return` is the nominal yearly return on money invested elsewhere.
@@ -28,6 +27,7 @@ class MemberInputs:
     equity: float = 2_000.0
     member_loan: float = 20_000.0
     member_loan_rate: float = 0.05
+    member_loan_term_years: int = 15
     entry_year: int = 0
     exit_year: int = 20
     market_rent: float = 650.0
@@ -56,7 +56,7 @@ def member_view(scenario: Scenario, result: Result, m: MemberInputs) -> pd.DataF
     project_rent = 12 * tab["rent_per_person"].fillna(0.0).to_numpy()
     market_rent = 12 * m.market_rent * cidx
     payout = tab["payout"].to_numpy() / scenario.persons
-    loan_due = min(m.entry_year + MEMBER_LOAN_TERM_YEARS, m.exit_year + 1)
+    loan_due = min(m.entry_year + m.member_loan_term_years, m.exit_year + 1)
 
     equity_in = m.equity * cidx[m.entry_year]
     invested = default = 0.0

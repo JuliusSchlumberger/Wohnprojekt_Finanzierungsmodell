@@ -176,3 +176,22 @@ def test_actual_maintenance_is_spent_from_reserve_without_changing_rent():
         for k, s in (("cheap", cheap), ("dear", dear))
     }
     assert pot["cheap"] > pot["dear"]
+
+
+def test_binding_year_is_where_a_slightly_lower_rent_fails():
+    from model.solve import binding_year
+
+    s = build_scenario(ProjectInputs())
+    rent = required_rent(s)
+    year, reason = binding_year(s, rent)
+    assert (year, reason) == (1, "reserve")
+    late = build_scenario(ProjectInputs(member_loan_term_years=10))
+    assert binding_year(late, required_rent(late))[1] == "arrears"
+
+
+def test_member_loan_term_moves_the_lump_repayment():
+    for term in (10, 20):
+        s = build_scenario(ProjectInputs(member_loan_term_years=term))
+        ml = simulate(s, 900.0).tranches["member_loans"]
+        assert int(ml["repayment"].idxmax()) == term
+        assert ml["repayment"].max() == pytest.approx(400_000 * 1.05**term)

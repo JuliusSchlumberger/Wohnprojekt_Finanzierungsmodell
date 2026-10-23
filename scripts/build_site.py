@@ -14,7 +14,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 # panel convert prepends code to the script, so the entry must not use `from __future__`.
 ENTRY = ROOT / "scripts" / "site_entry.py"
-TITLE = "Wohnprojekt-Finanzierungsrechner"
+TITLE = "Wohnprojekt-Rechner"
 # Packages the app imports beyond Panel itself; our own code ships as a local wheel.
 RUNTIME_REQUIREMENTS = ["numpy", "pandas", "plotly"]
 

@@ -59,6 +59,9 @@ def test_ranges_collapsed_onto_current_inputs_reproduce_base_rent():
         vacancy_rate=(p.vacancy_rate, p.vacancy_rate),
         renovation_factor=(1.0, 1.0),
         running_cost_factor=(1.0, 1.0),
+        member_loan_term_years=(p.member_loan_term_years, p.member_loan_term_years),
+        member_loan_factor=(1.0, 1.0),
+        direct_loans_10y_factor=(1.0, 1.0),
     )
     res = rent_uncertainty(p, fixed, n=10)
     np.testing.assert_allclose(
@@ -73,3 +76,15 @@ def test_costlier_renovation_raises_rent_and_ranks_as_positive_driver(result):
 def test_band_has_one_row_per_operating_year(result):
     assert len(result.headroom_band) == 50
     assert (result.headroom_band["p10"] <= result.headroom_band["p90"] + 1e-6).all()
+
+
+def test_fewer_member_loans_raise_the_rent_because_the_bank_fills_the_gap(result):
+    assert result.sensitivity["member_loan_factor"] < -0.2
+
+
+def test_member_loan_term_draws_are_whole_years_within_range():
+    from model.uncertainty import _apply
+
+    draws = latin_hypercube(ProjectInputs(), Ranges(), n=N)
+    terms = [_apply(ProjectInputs(), d).member_loan_term_years for _, d in draws.iterrows()]
+    assert all(isinstance(t, int) and 10 <= t <= 20 for t in terms)

@@ -142,7 +142,7 @@ def test_mode2_default_member_is_compared_against_market_rent():
 def test_mode2_member_preset_sets_capital_and_changes_result():
     mode2 = Mode2()
     before = mode2.view_table["alternative"].iloc[0]
-    mode2.inputs.member_type = "Viel"
+    mode2.inputs.member_type = "high"
     assert mode2.inputs.member_loan_personal == 40_000
     assert mode2.view_table["alternative"].iloc[0] > before
 
@@ -176,12 +176,13 @@ def test_start_page_boxes_have_equal_height_and_place_every_input_once():
 
 
 def test_header_navigation_switches_between_all_pages():
-    from app.main import PAGE_NAMES, serve
+    from app.main import PAGE_KEYS, serve
 
     template = serve()
     nav = template.header[0]
-    assert list(nav.options) == PAGE_NAMES
-    assert list(nav.options.values()) == list(range(len(PAGE_NAMES)))
+    assert len(nav.options) == len(PAGE_KEYS)
+    assert list(nav.options)[1] == "Modus 1: Miete"
+    assert list(nav.options.values()) == list(range(len(PAGE_KEYS)))
 
 
 def test_equity_and_member_loans_scale_with_persons():
@@ -196,7 +197,7 @@ def test_header_navigation_switches_the_visible_page_and_back():
     from app.main import serve
 
     template = serve()
-    nav, tabs = template.header[0], template.main[0]
+    nav, tabs = template.header[0], template.main[-1]
     for page in (2, 3, 0, 1):
         nav.value = page
         assert tabs.active == page

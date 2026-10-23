@@ -12,6 +12,7 @@ from model.presets import BANK_RATE_CHANGE_STEP, ProjectInputs, build_scenario
 from model.solve import RENT_BRACKET_EUR_PERSON, is_affordable, required_rent
 
 SAMPLE_RENT_TOLERANCE_EUR = 0.5
+SAMPLE_WINDOW = 0.08
 PERCENTILES = (10, 50, 90)
 
 
@@ -20,8 +21,10 @@ class Ranges:
     """Low and high value per uncertain input; the current input is the most likely value.
 
     Rates are fractions per year, `bank_rate_change_pp` is the change of the
-    bank rate after the fixed-rate period in percentage points, and the
-    factors scale renovation cost and running costs (admin plus insurance).
+    bank rate after the fixed-rate period in percentage points, the member
+    loan term is in years (drawn values are rounded to whole years), and the
+    factors scale renovation cost, running costs (admin plus insurance) and
+    the amounts of member loans and 10-year direct loans.
     """
 
     inflation: tuple[float, float] = (0.01, 0.04)
@@ -29,6 +32,9 @@ class Ranges:
     vacancy_rate: tuple[float, float] = (0.02, 0.08)
     renovation_factor: tuple[float, float] = (0.9, 1.3)
     running_cost_factor: tuple[float, float] = (0.8, 1.5)
+    member_loan_term_years: tuple[float, float] = (10.0, 20.0)
+    member_loan_factor: tuple[float, float] = (0.6, 1.1)
+    direct_loans_10y_factor: tuple[float, float] = (0.5, 1.1)
 
 
 @dataclass
@@ -49,6 +55,9 @@ def _modes(p: ProjectInputs) -> dict[str, float]:
         "vacancy_rate": p.vacancy_rate,
         "renovation_factor": 1.0,
         "running_cost_factor": 1.0,
+        "member_loan_term_years": float(p.member_loan_term_years),
+        "member_loan_factor": 1.0,
+        "direct_loans_10y_factor": 1.0,
     }
 
 
@@ -83,20 +92,38 @@ def _apply(p: ProjectInputs, draw: pd.Series) -> ProjectInputs:
         renovation_cost=p.renovation_cost * float(draw["renovation_factor"]),
         admin_cost_per_year=p.admin_cost_per_year * float(draw["running_cost_factor"]),
         insurance_per_year=p.insurance_per_year * float(draw["running_cost_factor"]),
+        member_loan_term_years=round(float(draw["member_loan_term_years"])),
+        member_loans=p.member_loans * float(draw["member_loan_factor"]),
+        direct_loans_10y=p.direct_loans_10y * float(draw["direct_loans_10y_factor"]),
     )
 
 
 def _rent_near(scenario, guess: float) -> float:
-    """Required rent searched in a bracket around `guess`, to SAMPLE_RENT_TOLERANCE_EUR."""
-    lo, hi = 0.8 * guess, 1.3 * guess
+    """Required rent searched around `guess`, to SAMPLE_RENT_TOLERANCE_EUR.
+
+    Starts with a window of +-SAMPLE_WINDOW around the guess and doubles the
+    step outwards until the window brackets the required rent, then bisects.
+    """
     limit = RENT_BRACKET_EUR_PERSON[1]
+    step = SAMPLE_WINDOW * guess
+    lo, hi = guess - step, guess + step
     while not is_affordable(scenario, hi):
-        lo, hi = hi, min(2 * hi, limit)
-        if hi == limit and not is_affordable(scenario, hi):
+        if hi >= limit:
             raise ValueError(f"rent above {limit} EUR per person needed")
-    if is_affordable(scenario, lo):
-        lo = 0.0
-    return required_rent(scenario, bracket=(lo, hi), tol=SAMPLE_RENT_TOLERANCE_EUR)
+        step *= 2
+        lo, hi = hi, min(hi + step, limit)
+    while lo > 0 and is_affordable(scenario, lo):
+        step *= 2
+        lo, hi = max(lo - step, 0.0), lo
+    if lo == 0 and is_affordable(scenario, lo):
+        return 0.0
+    while hi - lo > SAMPLE_RENT_TOLERANCE_EUR:
+        mid = 0.5 * (lo + hi)
+        if is_affordable(scenario, mid):
+            hi = mid
+        else:
+            lo = mid
+    return hi
 
 
 def rent_uncertainty(

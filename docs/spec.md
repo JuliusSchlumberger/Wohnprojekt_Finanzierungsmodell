@@ -2,7 +2,7 @@
 
 Ziel: Ein statisches, auf GitHub Pages gehostetes Dashboard (Python → WebAssembly), mit dem eine Wohnprojektgruppe Finanzierungsszenarien für ein gemeinsam gekauftes oder im Erbbaurecht genutztes Haus durchspielen kann. Drei Leitfragen, ein gemeinsamer Rechenkern, drei Komplexitätsschichten.
 
-Sprache der Oberfläche: Deutsch. Code, Variablen, Docstrings: Englisch. Dokumentation und Docstrings knapp halten.
+Sprache der Oberfläche: Deutsch (Referenz), Englisch und Niederländisch, umschaltbar in der Kopfzeile; Texte in `app/locale/`. Code, Variablen, Docstrings: Englisch. Dokumentation und Docstrings knapp halten.
 
 ---
 
@@ -20,7 +20,7 @@ Diese Annahmen sind gesetzt und werden auf der Startseite des Dashboards sichtba
 | A6 | Zeithorizont und Inflation | 50 Jahre. Miete, Betriebskosten und Erbbauzins steigen mit der Inflation (wählbar); Zins und Tilgung sind nominal fest. |
 | A7 | Mindestliquidität | Konto darf nie unter 6 Monatsmieten (Summe aller Mitglieder) fallen. |
 | A8 | Steuern | Nicht modelliert in Version 1. Sichtbar deklariert. |
-| A9 | Direkt- und Mitgliederdarlehen | Nachrangig und endfällig. Direktkredite: Laufzeit 5 oder 10 Jahre, je eigener Betrag und Zins, Zinsen jährlich ausgezahlt. Mitgliederdarlehen: 15 Jahre, Zinsen thesauriert, Rückzahlung samt Zinseszins. Was am Fälligkeitstag nicht ohne Unterschreiten der Mindestreserve zurückgezahlt werden kann, bleibt als Rückstand stehen, verzinst sich zum Satz des Darlehens und wird so schnell wie möglich nachgezahlt; Rückstände müssen nach spätestens 3 Jahren beglichen sein (Bedingung für die erforderliche Miete). Keine neuen Darlehen. Die reale Restschuld nach 50 Jahren wird angezeigt. |
+| A9 | Direkt- und Mitgliederdarlehen | Nachrangig und endfällig. Direktkredite: Laufzeit 5 oder 10 Jahre, je eigener Betrag und Zins, Zinsen jährlich ausgezahlt. Mitgliederdarlehen: Laufzeit einstellbar (Standard 15 Jahre), Zinsen thesauriert, Rückzahlung samt Zinseszins. Was am Fälligkeitstag nicht ohne Unterschreiten der Mindestreserve zurückgezahlt werden kann, bleibt als Rückstand stehen, verzinst sich zum Satz des Darlehens und wird so schnell wie möglich nachgezahlt; Rückstände müssen nach spätestens 3 Jahren beglichen sein (Bedingung für die erforderliche Miete). Keine neuen Darlehen. Die reale Restschuld nach 50 Jahren wird angezeigt. |
 
 ---
 
@@ -117,7 +117,7 @@ Result enthält Zeitreihen (Jahr × Größe) als numpy-Arrays bzw. DataFrame: Mi
 - `member.member_view(scenario, result, MemberInputs) -> DataFrame` (Modus 2).
 
 ### 3.4 Unsicherheit (`uncertainty.py`)
-Fünf Eingaben bekommen eine Spanne `(low, high)`; der aktuelle Wert ist der wahrscheinlichste (Dreiecksverteilung): Inflation, Bankzins nach Ende der Zinsbindung (± Prozentpunkte), Mietausfall, Sanierungskosten und Verwaltung + Versicherung (als Faktor auf die Schätzung). `rent_uncertainty(inputs, ranges, n, seed)` zieht n Latin-Hypercube-Stichproben (fester Startwert), sucht je Variante die erforderliche Miete (Klammer um die Basismiete, auf 0,50 € genau) und liefert Perzentile 10/50/90, die sichere Miete (90. Perzentil), das Band des Puffers über der Mindestreserve bei sicherer Miete und die Rangkorrelation jeder Eingabe mit der Miete. 200 Varianten ≈ 1,7 s lokal.
+Acht Eingaben bekommen eine Spanne `(low, high)`; der aktuelle Wert ist der wahrscheinlichste (Dreiecksverteilung): Inflation, Bankzins nach Ende der Zinsbindung (± Prozentpunkte), Mietausfall, Sanierungskosten und Verwaltung + Versicherung (als Faktor auf die Schätzung), Laufzeit der Mitgliederdarlehen (ganze Jahre) sowie Umfang der Mitgliederdarlehen und der 10-Jahres-Direktkredite (als Faktor auf die Planung; fehlender Betrag geht ans Bankdarlehen). `rent_uncertainty(inputs, ranges, n, seed)` zieht n Latin-Hypercube-Stichproben (fester Startwert), sucht je Variante die erforderliche Miete (Klammer um die Basismiete, auf 0,50 € genau) und liefert Perzentile 10/50/90, die sichere Miete (90. Perzentil), das Band des Puffers über der Mindestreserve bei sicherer Miete und die Rangkorrelation jeder Eingabe mit der Miete. Standard 150 Varianten (≈ 3,8 s im Browser).
 
 ### 3.5 Tests (`tests/`)
 - Annuität, Ratentilgung, Anlaufjahre, Endfällig gegen geschlossene Formeln (PMT).
@@ -142,8 +142,8 @@ Panel (bevorzugt) oder marimo; Export nach WebAssembly über `panel convert` bzw
 
 ### 4.3 Komplexitätsschichten
 - **Schicht 1 (Startseite, geteilt)**: Grundstück, Haus, Sanierung (Kaufnebenkosten 10 % automatisch), Kauf/Erbbaurecht, Personenzahl, Inflation, A4-Toggle; Einlagen; Mitgliederdarlehen (Betrag, Zins); Direktkredite 5 und 10 Jahre (je Betrag, Zins); Förderdarlehen (höchstens Sanierungskosten); Bank (Zins, Annuität/Ratenkredit, Laufzeit, Zins nach 10 Jahren −1/±0/+1 Prozentpunkt), Mindestanteil Eigenkapital + Nachrang, Zielmiete. Rechtsform-Preset folgt mit Schritt 6.
-- **Schicht 2 (Startseite, ausklappbar „Erweitert“)**: Verwaltung und Versicherung pro Jahr, tatsächliche Instandhaltung (% Wiederherstellungswert), Mindestreserve (Monatsmieten), maximale Dauer von Rückständen, Kaufnebenkostensatz, Erbbauzinssatz, Zins und Laufzeit der Förderdarlehen. Keine frei editierbare Darlehensliste und keine Mitgliedertypen-Tabelle: Darlehensarten sind fest, Einlagen und Mitgliederdarlehen gelten pro Person.
-- **Schicht 3 (eigene Seite „Unsicherheit“)**: Spannen für die fünf Eingaben aus §3.4, Anzahl Varianten (50–300), Rechnung nur auf Knopfdruck; Ergebnisse werden als veraltet markiert, sobald sich eine Annahme ändert. Ausgabe: Kennzahlen (Median, Spanne, sichere Miete), Verteilung der Miete, Pufferband, Treiber der Unsicherheit.
+- **Schicht 2 (Startseite, ausklappbar „Erweitert“)**: Verwaltung und Versicherung pro Jahr, tatsächliche Instandhaltung (% Wiederherstellungswert), Mindestreserve (Monatsmieten), maximale Dauer von Rückständen, Kaufnebenkostensatz, Erbbauzinssatz, Zins und Laufzeit der Förderdarlehen, Laufzeit der Mitgliederdarlehen. Keine frei editierbare Darlehensliste und keine Mitgliedertypen-Tabelle: Darlehensarten sind fest, Einlagen und Mitgliederdarlehen gelten pro Person.
+- **Schicht 3 (eigene Seite „Unsicherheit“)**: Spannen für die acht Eingaben aus §3.4, Anzahl Varianten (50–300), Rechnung nur auf Knopfdruck; Ergebnisse werden als veraltet markiert, sobald sich eine Annahme ändert. Ausgabe: Kennzahlen (Median, Spanne, sichere Miete), Verteilung der Miete, Pufferband, Treiber der Unsicherheit.
 
 ### 4.4 Mitgliedertypen
 Tabelle mit Spalten: Name, Anzahl, Privatraum m², Einlage, Mitgliederdarlehen, Darlehenszins, Zinsmodus. Default: ein Typ „Standard". Presets: „Wenig Kapital" (Einlage 2.000 €), „Mittel" (10.000 €), „Viel" (50.000 € Einlage + 25.000 € Darlehen). Die Miete ist für alle gleich pro m²; unterschiedliche Einlagen wirken über Modus 2 und über die Gesamtsumme des Eigenkapitals.

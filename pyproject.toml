@@ -14,10 +14,10 @@ app = ["panel>=1.5", "plotly"]
 dev = ["pytest", "openpyxl", "ruff"]
 
 [tool.setuptools]
-packages = ["model", "app"]
+packages = ["model", "app", "app.locale"]
 
 [tool.setuptools.package-data]
-app = ["*.md"]
+"app.locale" = ["*.md"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

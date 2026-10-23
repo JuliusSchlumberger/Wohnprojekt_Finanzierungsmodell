@@ -12,7 +12,6 @@ SurplusUse = Literal["rent_reduction", "payout_15y", "next_project"]
 RentMode = Literal["indexed", "fixed"]
 
 BANK_RATE_CHANGE_STEP = 0.01
-MEMBER_LOAN_TERM_YEARS = 15
 
 
 @dataclass(frozen=True)
@@ -22,7 +21,7 @@ class ProjectInputs:
     Purchase costs (`ancillary_cost_rate`) apply to land and house, the land
     only when bought. Under leasehold the land price is the ground value on
     which the ground rent is charged. Direct loans run 5 or 10 years with
-    yearly interest, member loans 15 years with accrued interest; all are
+    yearly interest, member loans `member_loan_term_years` with accrued interest; all are
     repaid at term; repayments that would push liquidity below the reserve
     are deferred and paid as soon as possible, within `max_arrears_years`. Maintenance is
     paid from a reserve fed with `maintenance_reserve_rate` of the replacement
@@ -42,6 +41,7 @@ class ProjectInputs:
     equity: float = 40_000.0
     member_loans: float = 400_000.0
     member_loan_rate: float = 0.05
+    member_loan_term_years: int = 15
     direct_loans_5y: float = 50_000.0
     direct_loan_rate_5y: float = 0.025
     direct_loans_10y: float = 150_000.0
@@ -124,7 +124,7 @@ def build_scenario(p: ProjectInputs) -> Scenario:
             amount=p.member_loans,
             interest_rate=p.member_loan_rate,
             repayment="bullet",
-            term_years=MEMBER_LOAN_TERM_YEARS,
+            term_years=p.member_loan_term_years,
             interest_mode="accrued",
         ),
         Tranche(

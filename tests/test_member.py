@@ -52,3 +52,12 @@ def test_invalid_years_raise(project):
     s, res = project
     with pytest.raises(ValueError):
         member_view(s, res, MemberInputs(entry_year=20, exit_year=10))
+
+
+def test_personal_member_loan_follows_the_chosen_term(project):
+    s, res = project
+    base = MemberInputs(equity=0.0, member_loan=0.0, alt_return=0.0, exit_year=50)
+    with_loan = replace(base, member_loan=10_000.0, member_loan_rate=0.05, member_loan_term_years=8)
+    diff = member_view(s, res, with_loan)["project"] - member_view(s, res, base)["project"]
+    deflator = res.table["cost_index"] / res.table["cost_index"].loc[1]
+    assert diff.loc[20] == pytest.approx(10_000 * 1.05**8 / deflator.loc[20])
