@@ -94,12 +94,21 @@ class Operations:
     `indexation_start_year` and (1 + inflation)^k in the k-th indexed year.
     `start_liquidity=None` sets the opening balance to `min_liquidity_months`
     of first-year gross rent, financed through the residual tranche.
+    `initial_vacancy_rate`, if set, replaces `vacancy_rate` in the first
+    `initial_vacancy_years` operating years.
+    With `maintenance_reserve_rate` set, that share of the replacement value
+    is paid each year into a separate maintenance reserve, from which the
+    actual maintenance (`maintenance_rate`) is spent; the reserve is not part
+    of liquidity. None charges `maintenance_rate` directly.
     """
 
     maintenance_rate: float = 0.015
+    maintenance_reserve_rate: float | None = None
     admin_cost_per_year: float = 4_000.0
     insurance_per_year: float = 2_500.0
     vacancy_rate: float = 0.02
+    initial_vacancy_rate: float | None = None
+    initial_vacancy_years: int = 3
     community_cost_per_year: float = 0.0
     inflation: float = 0.02
     indexation_start_year: int = 1
@@ -112,7 +121,6 @@ class Operations:
 class MemberType:
     name: str = "Standard"
     count: int = 20
-    private_area_m2: float = 20.0
     equity_contribution: float = 7_200.0
     member_loan_amount: float = 0.0
     member_loan_rate: float = 0.0
@@ -121,13 +129,28 @@ class MemberType:
 
 @dataclass
 class Rules:
+    """How freed money is used (A4) and how members are repaid (A5).
+
+    `surplus_use` applies to the senior debt service freed after payoff and,
+    with `redirect_surplus`, to liquidity above the reserve plus all
+    outstanding direct and member loans, once no arrears are open.
+    With `defer_repayments`, direct and member loan repayments that would push
+    liquidity below the reserve are deferred and paid as soon as possible;
+    arrears open longer than `max_arrears_years` make a scenario infeasible.
+    """
+
     surplus_use: Literal["rent_reduction", "payout_15y", "next_project"] = "rent_reduction"
-    exit_repayment: Literal["nominal", "real"] = "nominal"
+    exit_repayment: Literal["nominal", "real"] = "real"
     payout_interval_years: int = 15
+    redirect_surplus: bool = False
+    defer_repayments: bool = False
+    max_arrears_years: int = 3
 
 
 @dataclass
 class Scenario:
+    """Project, financing and rules."""
+
     property: Property = field(default_factory=Property)
     tranches: list[Tranche] = field(default_factory=list)
     operations: Operations = field(default_factory=Operations)
@@ -138,10 +161,6 @@ class Scenario:
     @builtins.property
     def persons(self) -> int:
         return sum(m.count for m in self.member_types)
-
-    @builtins.property
-    def private_area_m2_total(self) -> float:
-        return sum(m.count * m.private_area_m2 for m in self.member_types)
 
     def member_tranches(self) -> list[Tranche]:
         """Member equity and member loans as tranches, one per member type."""

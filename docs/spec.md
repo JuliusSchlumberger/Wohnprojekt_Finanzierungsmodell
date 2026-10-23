@@ -13,14 +13,14 @@ Diese Annahmen sind gesetzt und werden auf der Startseite des Dashboards sichtba
 | Nr. | Annahme | Festlegung |
 |---|---|---|
 | A1 | Eigentumsmodell | Ein gemeinsamer Rechtsträger (eG, GmbH, GmbH & Co. KG) kauft das Haus oder nutzt es im Erbbaurecht. Mitglieder zahlen ein Nutzungsentgelt („Miete"). Kein Einzeleigentum, kein WEG-Modell. |
-| A2 | Mieteinheit | Miete wird pro m² Privatraum berechnet. Standard: alle Mitglieder haben denselben Privatraum (Default 20 m²). Option: Privatraum pro Mitglied einzeln eingeben. Gemeinschaftsflächen werden nicht bepreist, ihre Kosten gehen in die Miete pro m² Privatraum ein. |
+| A2 | Mieteinheit | Miete pro Person und Monat, für alle gleich. Gemeinschaftsflächen sind darin enthalten; Privatflächen werden nicht unterschieden. |
 | A3 | Kapitalbeiträge | Einzelpersonen (nicht Haushalte) bringen unterschiedlich viel ein. Modelliert über Mitgliedertypen (siehe §4.4). |
-| A4 | Verwendung des nach Tilgung frei werdenden Kapitaldienstes | Toggle mit drei Optionen: `rent_reduction` (Mietsenkung), `payout_15y` (Ausschüttung an alle Mitglieder alle 15 Jahre), `next_project` (Solidartransfer, Geld verlässt das Modell). |
-| A5 | Rückzahlung der Einlage bei Austritt | Einlage = Genossenschaftsanteil bzw. Einlage in den Rechtsträger. Toggle: `nominal` (Rückzahlung des eingezahlten Betrags) oder `real` (inflationsindexiert). Auszahlung innerhalb eines Jahres nach Austritt. |
-| A6 | Zeithorizont | 50 Jahre. Beide Varianten der Mietentwicklung wählbar: `indexed` (Miete folgt Inflation) oder `fixed` (nominal festgeschrieben). |
+| A4 | Verwendung frei werdenden Geldes | Toggle mit drei Optionen: `rent_reduction` (Mietsenkung), `payout_15y` (Mietrückzahlung an alle Mitglieder alle 15 Jahre), `next_project` (Solidartransfer, Geld verlässt das Modell). Gilt für den nach Tilgung von Bank- und Förderdarlehen frei werdenden Kapitaldienst und für die Liquidität oberhalb von Mindestreserve plus allen offenen Direkt- und Mitgliederdarlehen (inkl. aufgelaufener Zinsen), sobald kein Rückstand offen ist. |
+| A5 | Einlagen | Einlage = Genossenschaftsanteil bzw. Einlage in den Rechtsträger. Bei Austritt inflationsindexiert zurückgezahlt; neue Mitglieder kaufen sich zum selben Wert ein, der Bestand im Projekt bleibt konstant (keine Zahlungsströme im Projekt). |
+| A6 | Zeithorizont und Inflation | 50 Jahre. Miete, Betriebskosten und Erbbauzins steigen mit der Inflation (wählbar); Zins und Tilgung sind nominal fest. |
 | A7 | Mindestliquidität | Konto darf nie unter 6 Monatsmieten (Summe aller Mitglieder) fallen. |
 | A8 | Steuern | Nicht modelliert in Version 1. Sichtbar deklariert. |
-| A9 | Direktkredite | Nachrangig, werden nicht getilgt, sondern bei Kündigung ersetzt (Kündigungsquote p.a. als Parameter) oder aus Rücklage/Bankaufstockung bedient. |
+| A9 | Direkt- und Mitgliederdarlehen | Nachrangig und endfällig. Direktkredite: Laufzeit 5 oder 10 Jahre, je eigener Betrag und Zins, Zinsen jährlich ausgezahlt. Mitgliederdarlehen: 15 Jahre, Zinsen thesauriert, Rückzahlung samt Zinseszins. Was am Fälligkeitstag nicht ohne Unterschreiten der Mindestreserve zurückgezahlt werden kann, bleibt als Rückstand stehen, verzinst sich zum Satz des Darlehens und wird so schnell wie möglich nachgezahlt; Rückstände müssen nach spätestens 3 Jahren beglichen sein (Bedingung für die erforderliche Miete). Keine neuen Darlehen. Die reale Restschuld nach 50 Jahren wird angezeigt. |
 
 ---
 
@@ -29,27 +29,33 @@ Diese Annahmen sind gesetzt und werden auf der Startseite des Dashboards sichtba
 Alle drei laufen auf demselben Rechenkern (§3). Sie unterscheiden sich nur darin, welche Größe gesucht wird.
 
 ### Modus 1 – Erforderliche Miete
-Eingabe: Kosten + Kapitalstapel. Gesucht: die niedrigste konstante Miete pro m² Privatraum (im Startjahr, danach je nach A6 indexiert oder fest), bei der die Liquidität in jedem Jahr ≥ Mindestreserve bleibt.
-Ausgabe: Miete €/m²/Monat, €/Person/Monat (je Mitgliedertyp), €/Jahr gesamt; Zeitverlauf von Liquidität, Restschuld je Tranche, Kapitaldienst; Jahr der Banktilgung; Entwicklung der Miete nach Tilgung je nach A4.
+Eingabe: Kosten + Kapitalstapel. Gesucht: die niedrigste Miete pro Person und Monat (im Startjahr, danach inflationsindexiert), bei der die Liquidität in jedem Jahr ≥ Mindestreserve bleibt.
+Ausgabe: Miete €/Person/Monat, €/Jahr gesamt, engstes Jahr; Zeitverlauf von Liquidität, Restschuld je Tranche, Kapitaldienst; Jahr der Banktilgung; Entwicklung der Miete nach Tilgung je nach A4.
 
 Lösung: Bisektion über die Miete, Zielfunktion = min über Jahre von (Liquidität − Reserve). Monoton, daher robust.
 
 ### Modus 2 – Altersvorsorge-Perspektive
-Eingabe: wie Modus 1 plus Mitgliedertyp, Eintrittsjahr, Austrittsjahr (Default: bleibt bis Horizontende), Marktmiete als Vergleich, Alternativrendite für angelegtes Geld.
-Gesucht: reale Vermögensentwicklung eines Mitglieds des gewählten Typs im Vergleich zur Alternative „Marktmiete zahlen, Einlage am Kapitalmarkt anlegen".
-Ausgabe (alles in Kaufkraft des Startjahrs):
-- Nettovermögen im Projekt: Einlage (nominal/real gemäß A5) + Mitgliederdarlehen inkl. gutgeschriebener Zinsen + kumulierte Ausschüttungen (A4).
-- Kumulierte Mietersparnis gegenüber Marktmiete (negativ, wenn Projektmiete höher).
-- Summe beider = „Vorsorgewert" des Projekts, als Zeitreihe und als Endwert.
-- Vergleichspfad: Einlage angelegt zur Alternativrendite, Marktmiete gezahlt.
-- Risikohinweis: Nachrangigkeit; optional ein Ausfallszenario (Einlage und Darlehen = 0) als zweite Linie.
-
-Drei Kapitalvarianten je Mitglied als Toggle: `share_only` (nur Genossenschaftsanteil/Einlage, kein Zins), `member_loan` (Einlage plus Mitgliederdarlehen mit Zins, wahlweise Auszahlung oder Gutschrift), `mixed` (beides, Anteile frei einstellbar).
+Eingabe: alle Annahmen aus Modus 1 plus für ein Mitglied: Mitgliedertyp (Voreinstellung),
+Einlage, eigenes Mitgliederdarlehen, Einzugs- und Auszugsjahr, Marktmiete pro Person,
+Alternativrendite. Projektmiete = erforderliche Miete aus Modus 1.
+Gesucht: reale Vermögensentwicklung des Mitglieds im Vergleich zur Alternative „Marktmiete
+zahlen, Geld anlegen".
+Ausgabe (alles in Kaufkraft von Jahr 1):
+- Im Projekt: alle Zahlungen an das Mitglied (Ersparnis gegenüber Marktmiete,
+  Mietrückzahlungen, zurückgezahltes Darlehen und Einlage) werden zur Alternativrendite
+  angelegt; Einlage (real, A5) und Darlehen (mit Zinseszins) zählen, solange sie im Projekt
+  stecken.
+- Vergleichspfad: Einlage und Darlehensbetrag zur Alternativrendite angelegt, Marktmiete
+  gezahlt.
+- Vorsorgevorteil = Differenz, als Zeitreihe und Endwert.
+- Ausfallszenario (Einlage und Darlehen = 0) als gestrichelte Linie.
+- Das einzelne Mitglied wirkt nicht auf die Projektfinanzierung zurück.
 
 ### Modus 3 – Zulässige Investition bei Zielmiete
-Eingabe: Zielmiete €/m², Kapitalstapel als Quoten (Eigenkapitalquote, Direktkreditquote, Förderquote, Rest Bank), Betriebskostenparameter, Gesamtkosten je m² (Kauf + Sanierung + Nebenkosten).
-Gesucht: maximale Gesamtinvestition, bei der Modus 1 die Zielmiete liefert. Daraus bei gegebenen €/m²: zulässige Gesamtfläche, bei gegebenem Privatraum pro Person: Personenzahl.
-Lösung: Bisektion über die Gesamtinvestition, innen Modus 1.
+Leitfrage: „Wie viel Haus kann sich unsere Gruppe leisten?"
+Eingabe: Zielmiete €/Person/Monat sowie alle übrigen Eingaben (Kosten als Schätzung, Eigenmittel als Beträge: Einlagen, Mitgliederdarlehen, Direktkredite, Förderdarlehen; das Bankdarlehen wächst mit der Investition), Mindestanteil Eigenkapital + Nachrang der Bank.
+Gesucht: maximale Gesamtinvestition als Minimum zweier Grenzen: (a) größte Investition, deren erforderliche Miete (Modus 1) die Zielmiete nicht übersteigt, wobei Grundstück, Haus und Sanierung im Verhältnis der Kostenschätzung skaliert werden; (b) (Einlagen + Mitgliederdarlehen + Direktkredite) / Mindestanteil. Ausgabe zusätzlich: Anteil der Kostenschätzung, der zulässig ist.
+Lösung: (a) Bisektion über die Gesamtinvestition mit der Bedingung Liquidität ≥ Reserve bei Zielmiete; (b) geschlossen.
 
 ---
 
@@ -63,7 +69,7 @@ Reines Python, keine UI-Abhängigkeiten. Jahresauflösung, Horizont `T = 50`. Al
 Property        purchase_price, renovation_cost, ancillary_cost_rate (Default 0.10),
                 tenure: "purchase" | "leasehold", ground_share (Anteil Grundstück am Kaufpreis,
                 Default 0.3), leasehold_rate (Erbbauzins p.a. auf Grundstückswert, Default 0.04),
-                total_area_m2, private_area_m2_total (Summe Privaträume), replacement_value
+                total_area_m2 (nur Plausibilitätskennzahl), replacement_value
                 (Default 0.6 × (purchase_price + renovation_cost)), start_year
 
 Tranche         kind: "equity" | "member_loan" | "direct_loan" | "subsidy_loan" | "bank_loan"
@@ -79,7 +85,7 @@ Operations      maintenance_rate (% Wiederherstellungswert p.a., Default 0.015),
                 0.02), community_cost_per_year, inflation (Default 0.02), rent_mode: "indexed"
                 | "fixed", min_liquidity_months (Default 6), start_liquidity
 
-MemberType      name, count, private_area_m2, equity_contribution, member_loan_amount,
+MemberType      name, count, equity_contribution, member_loan_amount,
                 member_loan_rate, member_loan_interest_mode
                 (Default: ein Typ, count = Personenzahl, 20 m², gleiche Einlage)
 
@@ -95,20 +101,20 @@ Konsistenzregel: Summe der Tranchen + Summe der Mitgliedereinlagen und -darlehen
 ### 3.2 Jahresschleife (`simulate(scenario, rent_per_m2) -> Result`)
 
 Für jedes Jahr t = 1..T:
-1. Einnahmen: Miete = rent_per_m2 × private_area_m2_total × 12 × Index(t) (Index = (1+inflation)^t bei `indexed`, sonst 1) × (1 − vacancy_rate).
+1. Einnahmen: Miete = rent_per_person × persons × 12 × Index(t) (Index = (1+inflation)^t bei `indexed`, sonst 1) × (1 − Mietausfall); Mietausfall in den ersten 3 Jahren `initial_vacancy_rate` (App: 20 %), danach `vacancy_rate` (App: 4 %).
 2. Betriebskosten: maintenance_rate × replacement_value × Index(t) + admin + insurance + community (alle inflationsindexiert) + Erbbauzins (falls leasehold).
-3. Kapitaldienst je Tranche: Zins auf Restschuld Jahresanfang; Tilgung je nach `repayment`; Zinsbindung: ab fixed_rate_years gilt follow_up_rate. Bei `accrued` wird der Zins der Restschuld zugeschlagen statt gezahlt. Direktkredite: Kündigungen = churn_rate × Bestand; Ersatz = replacement_rate × Kündigungen (Zufluss); Differenz aus Liquidität.
-4. Rücklage: Instandhaltungsrücklage wird als eigener Topf geführt (Zuführung = Posten aus 2, Entnahmen in Version 1 nur als pauschale Jahresausgabe = Zuführung; Topf bleibt als Anzeige).
-5. Überschussverwendung (A4), sobald alle Bank- und Fördertranchen getilgt sind: frei gewordener Kapitaldienst → `rent_reduction`: Miete sinkt um diesen Betrag; `payout_15y`: wird angesammelt und alle 15 Jahre gleichmäßig an alle Mitglieder ausgezahlt; `next_project`: Abfluss aus dem Modell.
+3. Kapitaldienst je Tranche: Zins auf Restschuld Jahresanfang; Tilgung je nach `repayment`; Zinsbindung: ab fixed_rate_years gilt follow_up_rate. Bei `accrued` wird der Zins der Restschuld zugeschlagen statt gezahlt. Direkt- und Mitgliederdarlehen endfällig; Rückstände nach A9, Jahr für Jahr (älteste zuerst, nur bis zur Mindestreserve).
+4. Rücklage: Instandhaltungsrücklage als eigener Topf außerhalb der Liquidität. Zuführung = 2 % des Wiederherstellungswerts × Index(t) (wählbar), Entnahme = laufende Instandhaltung (1,5 %); die Zuführung ist der Kostenposten für die Miete.
+5. Überschussverwendung (A4): frei gewordener Kapitaldienst nach Tilgung aller Bank- und Fördertranchen sowie, wenn kein Rückstand offen ist, die Liquidität oberhalb von Reserve plus aller offenen Direkt- und Mitgliederdarlehen → `rent_reduction`: Miete sinkt um diesen Betrag; `payout_15y`: wird angesammelt und alle 15 Jahre an alle Mitglieder zurückgezahlt (Mietrückzahlung); `next_project`: Abfluss aus dem Modell.
 6. Liquidität(t) = Liquidität(t−1) + Einnahmen − Betrieb − Kapitaldienst ± Direktkreditsaldo − Ausschüttungen.
 7. Austritte (nur Modus 2, für das betrachtete Mitglied): Rückzahlung Einlage nach A5 plus Darlehen inkl. aufgelaufener Zinsen im Folgejahr.
 
-Result enthält Zeitreihen (Jahr × Größe) als numpy-Arrays bzw. DataFrame: Miete, Einnahmen, Betrieb, Zins und Tilgung je Tranche, Restschuld je Tranche, Liquidität, Rücklage, Ausschüttungen, Inflationsindex, sowie Kennzahlen: min. Liquidität, Jahr der Banktilgung, Gesamtzinsen, Miete €/m² und €/Person je Typ.
+Result enthält Zeitreihen (Jahr × Größe) als numpy-Arrays bzw. DataFrame: Miete, Einnahmen, Betrieb, Zins und Tilgung je Tranche, Restschuld je Tranche, Liquidität, Rücklage, Ausschüttungen, Inflationsindex, sowie Kennzahlen: min. Liquidität, Jahr der Banktilgung, Gesamtzinsen, Miete €/Person.
 
 ### 3.3 Löser (`solve.py`)
 - `required_rent(scenario) -> float` (Modus 1): Bisektion über rent_per_m2 in [0, 50], Abbruch bei 0,01 €.
-- `max_investment(scenario_template, target_rent) -> float` (Modus 3): Bisektion über Gesamtinvestition; Tranchen werden aus Quoten abgeleitet.
-- `member_view(scenario, member_type, entry_year, exit_year, market_rent, alt_return) -> MemberResult` (Modus 2).
+- `max_investment(scenario_for, target_rent, lower) -> float` (Modus 3, Grenze a): Bisektion über Gesamtinvestition; `scenario_for` baut das Szenario für eine Investition, Eigenmittel fest, Bank als Rest.
+- `member.member_view(scenario, result, MemberInputs) -> DataFrame` (Modus 2).
 
 ### 3.4 Unsicherheit (`uncertainty.py`)
 Jeder numerische Parameter kann statt eines Werts eine Bandbreite `(low, high)` oder `(low, mode, high)` (Dreiecksverteilung) erhalten. `sample(scenario, n=300, method="lhs")` zieht Latin-Hypercube-Stichproben, führt den gewählten Modus aus und liefert Perzentile (10/50/90) der Zeitreihen und Kennzahlen. Rechenzeit im Browser muss unter 5 s bleiben; n ist einstellbar.
@@ -127,16 +133,16 @@ Jeder numerische Parameter kann statt eines Werts eine Bandbreite `(low, high)` 
 Panel (bevorzugt) oder marimo; Export nach WebAssembly über `panel convert` bzw. `marimo export html-wasm`. Diagramme: Plotly. Kein Server, keine Datenbank. Build über GitHub Action nach `gh-pages`. Lokale Entwicklung mit `panel serve`.
 
 ### 4.2 Seitenstruktur
-1. **Start** – Zweck, die neun Annahmen aus §1, Haftungshinweis (keine Finanz- oder Rechtsberatung), Link zur Methodik.
-2. **Modus 1: Miete** – Schicht-1-Regler links, rechts Kennzahlen (Miete €/m², €/Person je Typ, Jahr der Banktilgung) und Diagramme: gestapelte Jahreskosten (Betrieb, Zins, Tilgung) mit Mietlinie; Restschuld je Tranche; Liquidität mit Reserve-Linie.
-3. **Modus 2: Vorsorge** – Mitgliedertyp, Eintritts-/Austrittsjahr, Kapitalvariante, Marktmiete, Alternativrendite; Diagramm reales Vermögen Projekt vs. Alternative; Tabelle Endwerte; Ausfallszenario als gestrichelte Linie.
-4. **Modus 3: Zielmiete** – Zielmiete, Quoten, €/m²; Ausgabe: zulässige Investition, Fläche, Personenzahl; Diagramm: zulässige Investition als Funktion der Zielmiete (Kurve).
+1. **Start** – Zweck, alle Eingaben (gruppiert), die neun Annahmen aus §1, Haftungshinweis. Eingaben sind über alle Seiten geteilt: eine Änderung auf einer Seite gilt sofort überall.
+2. **Modus 1: Miete** – Hauptstellschrauben links (Grundstück, Haus, Sanierung, Kauf/Erbbaurecht, Einlagen, Mitgliederdarlehen, Direktkredite, Förderdarlehen, Bankzins, Inflation) mit automatisch berechnetem Bankdarlehen und Eigenkapitalprüfung; rechts Kennzahlen (Miete €/Person, Jahr der Banktilgung, engstes Jahr) und Diagramme: gestapelte Jahreskosten mit Mietlinie; Restschuld je Darlehen; Liquidität mit Reserve-Linie.
+3. **Modus 2: Vorsorge** – Mitgliedertyp, Einlage, eigenes Mitgliederdarlehen, Ein-/Auszugsjahr, Marktmiete, Alternativrendite; Diagramm reales Vermögen Projekt vs. Alternative, Ausfallszenario gestrichelt; Kennzahlen mit Endwerten.
+4. **Modus 3: Zielmiete** – Zielmiete pro Person, Eigenmittel, Bankzins, Inflation, Mindestanteil; Ausgabe: zulässige Investition mit bindender Grenze und Anteil der Kostenschätzung; Diagramm: zulässige Investition als Funktion der Zielmiete (Kurve) mit Eigenkapitalgrenze.
 5. **Szenarien** – Dropdown mit Presets (JSON in `scenarios/`), Vergleich von bis zu drei Szenarien nebeneinander, Export/Import des aktuellen Parametersatzes als JSON.
 6. **Methodik** – Rechenlogik in Kurzform, Parameterliste mit Defaults und Quellen, Grenzen des Modells.
 
 ### 4.3 Komplexitätsschichten
-- **Schicht 1 (Standard sichtbar)**: Gesamtinvestition, Privatraum pro Person, Personenzahl, Eigenkapitalquote, Direktkreditquote, Förderquote, Bankzins, Kauf/Erbbaurecht, Rechtsform-Preset, A4-Toggle, A5-Toggle, Mietmodus (A6).
-- **Schicht 2 (ausklappbar „Erweitert")**: vollständige Tranchenliste (Tabelle, Zeilen hinzufügen/entfernen), Betriebsparameter, Inflation, Zinsbindung und Anschlusszins, Kündigungs- und Ersatzquote Direktkredite, Mindestreserve, Mitgliedertypen-Tabelle, Privatraum je Mitglied.
+- **Schicht 1 (Startseite, geteilt)**: Grundstück, Haus, Sanierung (Kaufnebenkosten 10 % automatisch), Kauf/Erbbaurecht, Personenzahl, Inflation, A4-Toggle; Einlagen; Mitgliederdarlehen (Betrag, Zins); Direktkredite 5 und 10 Jahre (je Betrag, Zins); Förderdarlehen (höchstens Sanierungskosten); Bank (Zins, Annuität/Ratenkredit, Laufzeit, Zins nach 10 Jahren −1/±0/+1 Prozentpunkt), Mindestanteil Eigenkapital + Nachrang, Zielmiete. Rechtsform-Preset folgt mit Schritt 6.
+- **Schicht 2 (ausklappbar „Erweitert")**: vollständige Tranchenliste (Tabelle, Zeilen hinzufügen/entfernen), Betriebsparameter, Inflation, Zinsbindung und Anschlusszins, Mindestreserve, Mitgliedertypen-Tabelle, Konditionen der Förderdarlehen, Kaufnebenkostensatz, Erbbauzinssatz.
 - **Schicht 3 (Schalter „Unsicherheit")**: zu jedem Schicht-2-Parameter ein Bandbreitenfeld; Diagramme zeigen Median und 10–90 %-Band; n einstellbar.
 
 ### 4.4 Mitgliedertypen
@@ -160,7 +166,8 @@ wohnprojekt-dashboard/
     __init__.py
     types.py              Dataclasses aus §3.1
     cashflow.py           Jahresschleife, Tranchenlogik
-    solve.py              required_rent, max_investment, member_view
+    solve.py              required_rent, max_investment
+    member.py             member_view (Modus 2)
     uncertainty.py        Bandbreiten, LHS, Perzentile
     presets.py            Laden der JSON-Szenarien, Rechtsform-Presets
   app/

@@ -46,7 +46,6 @@ def scenario_from_case(c: dict) -> Scenario:
     members = [
         MemberType(
             count=persons,
-            private_area_m2=c["private_area_m2"] / persons,
             equity_contribution=c["equity"] / persons,
         )
     ]
@@ -90,7 +89,8 @@ def _compare():
     c = _case()
     years = slice(1, c["compare_years"])
     trias = read_trias(WORKBOOK).loc[years]
-    res = simulate(scenario_from_case(c), c["rent_per_m2_month"])
+    rent_per_person = c["rent_per_m2_month"] * c["private_area_m2"] / c["persons"]
+    res = simulate(scenario_from_case(c), rent_per_person)
     tb, tr = res.table.loc[years], {k: v.loc[years] for k, v in res.tranches.items()}
     ours = {
         "rent_gross": tb.gross_rent,

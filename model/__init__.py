@@ -1,7 +1,7 @@
-"""Financing model for collectively owned housing projects; see `simulate` and `required_rent`."""
+"""Financing model for collectively owned housing projects; see `simulate` and the solvers."""
 
 from model.cashflow import Result, simulate
-from model.solve import required_rent
+from model.solve import max_investment, required_rent
 from model.types import MemberType, Operations, Property, Rules, Scenario, Tranche
 
 __all__ = [
@@ -12,6 +12,7 @@ __all__ = [
     "Rules",
     "Scenario",
     "Tranche",
+    "max_investment",
     "required_rent",
     "simulate",
 ]

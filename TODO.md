@@ -1,5 +1,6 @@
-- model/solve.py: `max_investment` (mode 3) and `member_view` (mode 2), spec steps 5.
-- model/cashflow.py: maintenance reserve pot (spec 3.2 step 4) not tracked; with withdrawals = contributions it is always zero.
-- model/cashflow.py: `_run` loops over years per tranche; vectorize over samples for uncertainty (spec 3.4, < 5 s with n = 300).
+- model/cashflow.py: `_run` loops over years per tranche and `_settle` per year (all pages 0.15 s per input change); vectorize over samples for uncertainty (spec 3.4, < 5 s with n = 300).
 - model/presets.py: scenario JSON presets and legal-form presets (spec 4.5, 4.6), step 6.
-- model/cashflow.py: needs decision before mode 2: with indexed rent, year 1 is the tightest year and liquidity then grows every year (~3.8 M EUR nominal by year 50 in example_scenario); A4 only redirects freed bank/subsidy debt service, not this surplus.
+- app/widgets.py:218: legal-form preset missing (needs presets, step 6).
+- model/presets.py:91: subsidy rate/term (1.5 %, 30 y), purchase-cost rate (10 %) and ground-rent rate (4 %) fixed; expose in layer 2.
+- model/cashflow.py:51: `amortization_years` returns NaN for a zero-principal annuity with `initial_repayment_rate` (bank loan of exactly 0 EUR when own funds cover investment + opening liquidity).
+- model/cashflow.py:42: `cost_index` is 1.02 in year 1, so the rent "in year 1" (input, KPIs) is charged x(1+inflation) in year 1; decide whether the input means year 0 or year 1 prices.

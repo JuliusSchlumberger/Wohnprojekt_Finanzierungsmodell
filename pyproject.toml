@@ -14,7 +14,7 @@ app = ["panel>=1.5", "plotly"]
 dev = ["pytest", "openpyxl", "ruff"]
 
 [tool.setuptools]
-packages = ["model"]
+packages = ["model", "app"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

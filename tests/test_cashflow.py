@@ -7,7 +7,7 @@ from model import simulate
 from model.presets import example_scenario
 from model.types import Rules, Scenario
 
-RENT = 28.0
+RENT = 560.0  # EUR per person and month
 
 
 def _with_rules(s: Scenario, **kw) -> Scenario:
@@ -38,7 +38,7 @@ def test_senior_loans_fully_repaid_within_horizon():
 def test_opening_liquidity_is_six_months_rent_financed_by_bank():
     s = example_scenario()
     res = simulate(s, RENT)
-    reserve = 0.5 * RENT * s.private_area_m2_total * 12 * (1 + s.operations.inflation)
+    reserve = 0.5 * RENT * s.persons * 12 * (1 + s.operations.inflation)
     assert res.metrics["opening_liquidity"] == pytest.approx(reserve)
     sources = sum(df.balance.iloc[0] for df in res.tranches.values())
     assert sources == pytest.approx(s.property.total_investment + reserve)
@@ -86,3 +86,36 @@ def test_fixed_rent_mode_keeps_rent_constant():
     s = replace(s, operations=replace(s.operations, rent_mode="fixed"))
     tb = simulate(s, RENT).table
     assert tb.gross_rent[1:].nunique() == 1
+
+
+def _app_result(**kwargs):
+    from model.presets import ProjectInputs, build_scenario
+    from model.solve import required_rent
+
+    s = build_scenario(ProjectInputs(**kwargs))
+    return s, simulate(s, required_rent(s))
+
+
+def test_maintenance_reserve_collects_two_percent_and_spends_actual_maintenance():
+    s, res = _app_result()
+    tb = res.table.loc[1:]
+    rv = s.property.replacement_value
+    np.testing.assert_allclose(tb.reserve_contribution, 0.02 * rv * tb.cost_index)
+    expected_pot = np.cumsum(tb.reserve_contribution - tb.maintenance)
+    np.testing.assert_allclose(tb.maintenance_reserve, expected_pot)
+    assert tb.maintenance_reserve.is_monotonic_increasing
+
+
+def test_initial_vacancy_applies_to_first_three_years_only():
+    _, res = _app_result()
+    vacancy = res.table.vacancy_rate.loc[1:]
+    assert (vacancy.loc[1:3] == 0.20).all()
+    assert (vacancy.loc[4:] == 0.04).all()
+
+
+def test_payout_option_pays_redirected_surplus_every_15_years():
+    _, res = _app_result(surplus_use="payout_15y")
+    paid = res.table.payout[res.table.payout > 0]
+    assert len(paid) > 0
+    assert all(t % 15 == 0 for t in paid.index)
+    assert res.table.rent_rebate.sum() == 0

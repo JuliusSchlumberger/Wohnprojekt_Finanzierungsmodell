@@ -4,13 +4,16 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass, field, replace
+from typing import get_args
 
 import numpy as np
 import pandas as pd
 
-from model.types import Scenario, Tranche
+from model.types import Rules, Scenario, Tranche, TrancheKind
 
 SENIOR_KINDS = ("bank_loan", "subsidy_loan")
+SUBORDINATED_KINDS = ("member_loan", "direct_loan")
+EQUITY_LIKE_KINDS = ("equity", *SUBORDINATED_KINDS)
 _PAID_OFF_EUR = 0.5
 
 
@@ -120,11 +123,94 @@ def tranche_schedule(tr: Tranche, horizon: int) -> TrancheSchedule:
     return s
 
 
-def opening_liquidity(scenario: Scenario, rent_per_m2: float) -> float:
+def _settle(
+    rules: Rules,
+    net: np.ndarray,
+    start_liquidity: float,
+    reserve: np.ndarray,
+    due: np.ndarray,
+    due_rate: np.ndarray,
+    outstanding: np.ndarray,
+) -> dict[str, np.ndarray]:
+    """Year-by-year liquidity with deferred repayments and surplus redirection.
+
+    `net` excludes the subordinated repayments `due`. With
+    `rules.defer_repayments`, arrears are paid first (oldest first), then the
+    year's due amount, each only as far as liquidity stays above the reserve;
+    the rest becomes arrears that bear interest at `due_rate`, paid yearly.
+    Arrears still open `max_arrears_years` after falling due are reported as
+    overdue. Without deferral the due amount is paid in full.
+    With `rules.redirect_surplus`, liquidity above the reserve plus all
+    `outstanding` subordinated debt is taken out once no arrears are open.
+    """
+    n = len(net)
+    out = {
+        k: np.zeros(n)
+        for k in (
+            "liquidity",
+            "surplus",
+            "paid_on_time",
+            "arrears_new",
+            "arrears_paid",
+            "arrears",
+            "arrears_interest",
+            "arrears_overdue",
+        )
+    }
+    cohorts: list[list[float]] = []  # [year due, open amount, rate]
+    liq = out["liquidity"][0] = start_liquidity
+    for t in range(1, n):
+        liq += net[t]
+        out["arrears_interest"][t] = sum(amount * rate for _, amount, rate in cohorts)
+        liq -= out["arrears_interest"][t]
+        if rules.defer_repayments:
+            for cohort in cohorts:
+                pay = min(max(liq - reserve[t], 0.0), cohort[1])
+                cohort[1] -= pay
+                liq -= pay
+                out["arrears_paid"][t] += pay
+            cohorts = [c for c in cohorts if c[1] > _PAID_OFF_EUR]
+            paid = min(max(liq - reserve[t], 0.0), due[t])
+            if due[t] - paid > _PAID_OFF_EUR:
+                cohorts.append([t, due[t] - paid, due_rate[t]])
+                out["arrears_new"][t] = due[t] - paid
+        else:
+            paid = due[t]
+        liq -= paid
+        out["paid_on_time"][t] = paid
+        out["arrears"][t] = sum(amount for _, amount, _ in cohorts)
+        out["arrears_overdue"][t] = sum(
+            amount for year, amount, _ in cohorts if t - year >= rules.max_arrears_years
+        )
+        if rules.redirect_surplus and not cohorts:
+            out["surplus"][t] = max(liq - reserve[t] - outstanding[t], 0.0)
+            liq -= out["surplus"][t]
+        out["liquidity"][t] = liq
+    return out
+
+
+def _distribute(amount: np.ndarray, rules: Rules) -> dict[str, np.ndarray]:
+    """Split freed money by the A4 rule into rent reduction, payout and transfer."""
+    zeros = np.zeros_like(amount)
+    if rules.surplus_use == "rent_reduction":
+        return {"rent_reduction": amount, "payout": zeros, "transfer_out": zeros}
+    if rules.surplus_use == "next_project":
+        return {"rent_reduction": zeros, "payout": zeros, "transfer_out": amount}
+    t = np.arange(len(amount))
+    pot = np.cumsum(amount)
+    payout = np.zeros_like(amount)
+    paid_so_far = 0.0
+    for year in np.nonzero((t > 0) & (t % rules.payout_interval_years == 0))[0]:
+        payout[year] = pot[year] - paid_so_far
+        paid_so_far = pot[year]
+    return {"rent_reduction": zeros, "payout": payout, "transfer_out": zeros}
+
+
+def opening_liquidity(scenario: Scenario, rent_per_person: float) -> float:
     ops = scenario.operations
     if ops.start_liquidity is not None:
         return ops.start_liquidity
-    first_year_rent = rent_per_m2 * scenario.private_area_m2_total * 12 * _rent_index(scenario)[1]
+    first_year_rent = rent_per_person * scenario.persons * 12 * _rent_index(scenario)[1]
     return ops.min_liquidity_months / 12 * first_year_rent
 
 
@@ -150,6 +236,24 @@ def financed_tranches(scenario: Scenario, start_liquidity: float) -> list[Tranch
             "adjust amounts or mark one tranche residual"
         )
     return tranches
+
+
+def capital_structure(scenario: Scenario, rent_per_person: float) -> dict[str, float]:
+    """Financed amount per tranche kind and the equity-like share of total investment.
+
+    Equity-like capital is member equity plus subordinated member and direct
+    loans, which banks usually count towards the borrower's own funds.
+    """
+    tranches = financed_tranches(scenario, opening_liquidity(scenario, rent_per_person))
+    amounts = dict.fromkeys(get_args(TrancheKind), 0.0)
+    for tr in tranches:
+        amounts[tr.kind] += float(tr.amount)
+    equity_like = sum(amounts[kind] for kind in EQUITY_LIKE_KINDS)
+    return {
+        **amounts,
+        "equity_like": equity_like,
+        "equity_like_share": equity_like / scenario.property.total_investment,
+    }
 
 
 def _rent_index(scenario: Scenario) -> np.ndarray:
@@ -179,7 +283,7 @@ def senior_payoff_year(scenario: Scenario, schedules: dict[str, TrancheSchedule]
     return int(done[0]) if done.size else None
 
 
-def _run(scenario: Scenario, rent_per_m2: float) -> dict[str, np.ndarray | float | dict]:
+def _run(scenario: Scenario, rent_per_person: float) -> dict[str, np.ndarray | float | dict]:
     """Core simulation returning raw arrays; `simulate` wraps it for display."""
     ops, prop, rules = scenario.operations, scenario.property, scenario.rules
     T = scenario.horizon_years
@@ -187,12 +291,17 @@ def _run(scenario: Scenario, rent_per_m2: float) -> dict[str, np.ndarray | float
     cidx = cost_index(scenario)
     ridx = _rent_index(scenario)
 
-    start_liq = opening_liquidity(scenario, rent_per_m2)
+    start_liq = opening_liquidity(scenario, rent_per_person)
     schedules = debt_schedules(scenario, start_liq)
 
-    gross_rent = rent_per_m2 * scenario.private_area_m2_total * 12 * ridx
+    gross_rent = rent_per_person * scenario.persons * 12 * ridx
     gross_rent[0] = 0.0
     maintenance = ops.maintenance_rate * prop.replacement_value * cidx
+    reserve_contribution = (
+        maintenance.copy()
+        if ops.maintenance_reserve_rate is None
+        else ops.maintenance_reserve_rate * prop.replacement_value * cidx
+    )
     admin = ops.admin_cost_per_year * cidx
     insurance = ops.insurance_per_year * cidx
     community = ops.community_cost_per_year * cidx
@@ -201,8 +310,9 @@ def _run(scenario: Scenario, rent_per_m2: float) -> dict[str, np.ndarray | float
         if prop.tenure == "leasehold"
         else np.zeros(T + 1)
     )
-    operating = maintenance + admin + insurance + community + ground_rent
+    operating = reserve_contribution + admin + insurance + community + ground_rent
     operating[0] = 0.0
+    maintenance_reserve = np.cumsum(np.where(t > 0, reserve_contribution - maintenance, 0.0))
 
     interest = np.sum([s.interest for s in schedules.values()], axis=0)
     interest_paid = np.sum([s.interest_paid for s in schedules.values()], axis=0)
@@ -218,28 +328,52 @@ def _run(scenario: Scenario, rent_per_m2: float) -> dict[str, np.ndarray | float
     if payoff is not None:
         freed[t > payoff] = senior_service.max()
 
-    rent_reduction = np.zeros(T + 1)
-    payout = np.zeros(T + 1)
-    transfer_out = np.zeros(T + 1)
-    if rules.surplus_use == "rent_reduction":
-        rent_reduction = np.minimum(freed, gross_rent)
-    elif rules.surplus_use == "next_project":
-        transfer_out = freed
-    else:
-        pot = np.cumsum(freed)
-        due = (t > 0) & (t % rules.payout_interval_years == 0)
-        paid_so_far = 0.0
-        for year in np.nonzero(due)[0]:
-            payout[year] = pot[year] - paid_so_far
-            paid_so_far = pot[year]
-
+    if rules.redirect_surplus and rules.surplus_use != "rent_reduction":
+        # freed debt service stays in liquidity and leaves as surplus
+        freed[:] = 0.0
+    freed_use = _distribute(np.minimum(freed, gross_rent), rules)
+    rent_reduction = freed_use["rent_reduction"]
     charged_rent = gross_rent - rent_reduction
-    rent_income = charged_rent * (1 - ops.vacancy_rate)
-    net = rent_income - operating - debt_service + inflow - payout - transfer_out
+    vacancy = np.full(T + 1, ops.vacancy_rate)
+    if ops.initial_vacancy_rate is not None:
+        vacancy[1 : ops.initial_vacancy_years + 1] = ops.initial_vacancy_rate
+    rent_income = charged_rent * (1 - vacancy)
+    net = (
+        rent_income
+        - operating
+        - debt_service
+        + inflow
+        - freed_use["payout"]
+        - freed_use["transfer_out"]
+    )
     net[0] = 0.0
-    liquidity = start_liq + np.cumsum(net)
     reserve_required = ops.min_liquidity_months / 12 * charged_rent
+    sub = {n: s for n, s in schedules.items() if kinds.get(n) in SUBORDINATED_KINDS}
+    zeros = np.zeros(T + 1)
+    due = sum((s.repayment for s in sub.values()), start=zeros)
+    if not (rules.defer_repayments or rules.redirect_surplus):
+        liquidity = start_liq + np.cumsum(net)
+        settled = {"surplus": zeros, "paid_on_time": due, "arrears_new": zeros}
+        settled |= {"arrears_paid": zeros, "arrears": zeros, "arrears_interest": zeros}
+        settled["arrears_overdue"] = zeros
+    else:
+        rates = {tr.name: tr.interest_rate for tr in scenario.tranches}
+        weighted = sum((s.repayment * rates[n] for n, s in sub.items()), start=zeros)
+        due_rate = np.divide(weighted, due, out=np.zeros(T + 1), where=due > 0)
+        outstanding = sum((s.balance for s in sub.values()), start=zeros)
+        settled = _settle(rules, net + due, start_liq, reserve_required, due, due_rate, outstanding)
+        liquidity = settled.pop("liquidity")
+        repayment = repayment - due + settled["paid_on_time"] + settled["arrears_paid"]
+        interest_paid = interest_paid + settled["arrears_interest"]
+        interest = interest + settled["arrears_interest"]
+        debt_service = interest_paid + repayment
+    surplus = settled.pop("surplus")
+    surplus_use = _distribute(surplus, rules)
+    payout = freed_use["payout"] + surplus_use["payout"]
+    transfer_out = freed_use["transfer_out"] + surplus_use["transfer_out"]
+    rent_rebate = surplus_use["rent_reduction"]
     headroom = liquidity - reserve_required
+    worst = min(headroom[1:].min(), -settled["arrears_overdue"].max())
 
     return {
         "t": t,
@@ -247,8 +381,11 @@ def _run(scenario: Scenario, rent_per_m2: float) -> dict[str, np.ndarray | float
         "gross_rent": gross_rent,
         "rent_reduction": rent_reduction,
         "charged_rent": charged_rent,
+        "vacancy_rate": vacancy,
         "rent_income": rent_income,
         "maintenance": maintenance,
+        "reserve_contribution": reserve_contribution,
+        "maintenance_reserve": maintenance_reserve,
         "admin": admin,
         "insurance": insurance,
         "community": community,
@@ -259,41 +396,51 @@ def _run(scenario: Scenario, rent_per_m2: float) -> dict[str, np.ndarray | float
         "repayment": repayment,
         "loan_inflow": inflow,
         "debt_service": debt_service,
+        "sub_due": due,
+        "sub_paid_on_time": settled["paid_on_time"],
+        "arrears_new": settled["arrears_new"],
+        "arrears_paid": settled["arrears_paid"],
+        "arrears": settled["arrears"],
+        "arrears_interest": settled["arrears_interest"],
+        "arrears_overdue": settled["arrears_overdue"],
+        "surplus": surplus,
+        "rent_rebate": rent_rebate,
         "payout": payout,
         "transfer_out": transfer_out,
         "liquidity": liquidity,
         "reserve_required": reserve_required,
         "headroom": headroom,
-        "min_headroom": float(headroom[1:].min()),
+        "min_headroom": float(worst),
         "payoff_year": payoff,
         "schedules": schedules,
     }
 
 
-def min_headroom(scenario: Scenario, rent_per_m2: float) -> float:
+def min_headroom(scenario: Scenario, rent_per_person: float) -> float:
     """Smallest liquidity minus required reserve over operating years."""
-    return _run(scenario, rent_per_m2)["min_headroom"]
+    return _run(scenario, rent_per_person)["min_headroom"]
 
 
-def simulate(scenario: Scenario, rent_per_m2: float) -> Result:
-    """Simulate a scenario for a starting rent in EUR per m2 private area per month."""
-    raw = _run(scenario, rent_per_m2)
+def simulate(scenario: Scenario, rent_per_person: float) -> Result:
+    """Simulate a scenario for a starting rent in EUR per person per month."""
+    raw = _run(scenario, rent_per_person)
     schedules = raw.pop("schedules")
     payoff = raw.pop("payoff_year")
     min_head = raw.pop("min_headroom")
     table = pd.DataFrame(raw).set_index("t")
     table.insert(0, "year", scenario.property.start_year + table.index)
-    area = scenario.private_area_m2_total
-    table["rent_per_m2"] = np.where(table.index > 0, table["charged_rent"] / (12 * area), np.nan)
+    table["rent_per_person"] = np.where(
+        table.index > 0,
+        (table["charged_rent"] - table["rent_rebate"]) / (12 * scenario.persons),
+        np.nan,
+    )
     tranches = {name: pd.DataFrame(vars(s), index=table.index) for name, s in schedules.items()}
     metrics: dict[str, float] = {
-        "rent_per_m2": rent_per_m2,
+        "rent_per_person": rent_per_person,
         "rent_per_year": float(table["gross_rent"].iloc[1]),
         "min_headroom": min_head,
         "senior_payoff_year": float("nan") if payoff is None else float(payoff),
         "total_interest": float(table["interest"].sum()),
         "opening_liquidity": float(table["liquidity"].iloc[0]),
     }
-    for m in scenario.member_types:
-        metrics[f"rent_per_person_month:{m.name}"] = rent_per_m2 * m.private_area_m2
     return Result(table=table, tranches=tranches, metrics=metrics)
