@@ -24,12 +24,12 @@ class ProjectInputs:
     which the ground rent is charged. Direct loans run 5 or 10 years with
     yearly interest, member loans 15 years with accrued interest; all are
     repaid at term; repayments that would push liquidity below the reserve
-    are deferred and paid as soon as possible, within 3 years. Maintenance is
+    are deferred and paid as soon as possible, within `max_arrears_years`. Maintenance is
     paid from a reserve fed with `maintenance_reserve_rate` of the replacement
     value. Once no arrears are open, liquidity above reserve plus all
     outstanding direct and member loans goes to the A4 use. The first 3
     operating years carry `initial_vacancy_rate` instead of `vacancy_rate`.
-    `bank_rate_change` is -1, 0 or +1 steps of `BANK_RATE_CHANGE_STEP`
+    `bank_rate_change` counts steps of `BANK_RATE_CHANGE_STEP` (the app offers -1, 0, +1)
     applied after the 10-year fixed-rate period.
     """
 
@@ -50,12 +50,20 @@ class ProjectInputs:
     bank_rate: float = 0.06
     bank_repayment: Literal["annuity", "linear"] = "annuity"
     bank_term_years: int = 30
-    bank_rate_change: Literal[-1, 0, 1] = 1
+    bank_rate_change: float = 1
     inflation: float = 0.02
     vacancy_rate: float = 0.04
     initial_vacancy_rate: float = 0.20
     maintenance_reserve_rate: float = 0.02
     surplus_use: SurplusUse = "rent_reduction"
+    maintenance_rate: float = 0.015
+    admin_cost_per_year: float = 4_000.0
+    insurance_per_year: float = 2_500.0
+    min_liquidity_months: float = 6.0
+    leasehold_rate: float = 0.04
+    subsidy_rate: float = 0.015
+    subsidy_term_years: int = 30
+    max_arrears_years: int = 3
 
     @property
     def ancillary_cost(self) -> float:
@@ -107,6 +115,7 @@ def build_scenario(p: ProjectInputs) -> Scenario:
         ancillary_cost_rate=p.ancillary_cost_rate,
         tenure=p.tenure,
         ground_share=p.land_price / purchase_price,
+        leasehold_rate=p.leasehold_rate,
     )
     subordinated = [
         Tranche(
@@ -140,9 +149,9 @@ def build_scenario(p: ProjectInputs) -> Scenario:
             name="subsidy",
             kind="subsidy_loan",
             amount=p.subsidy,
-            interest_rate=0.015,
+            interest_rate=p.subsidy_rate,
             repayment="annuity",
-            term_years=30,
+            term_years=p.subsidy_term_years,
         ),
         Tranche(
             name="bank",
@@ -164,8 +173,17 @@ def build_scenario(p: ProjectInputs) -> Scenario:
             maintenance_reserve_rate=p.maintenance_reserve_rate,
             vacancy_rate=p.vacancy_rate,
             initial_vacancy_rate=p.initial_vacancy_rate,
+            maintenance_rate=p.maintenance_rate,
+            admin_cost_per_year=p.admin_cost_per_year,
+            insurance_per_year=p.insurance_per_year,
+            min_liquidity_months=p.min_liquidity_months,
         ),
-        rules=Rules(surplus_use=p.surplus_use, redirect_surplus=True, defer_repayments=True),
+        rules=Rules(
+            surplus_use=p.surplus_use,
+            redirect_surplus=True,
+            defer_repayments=True,
+            max_arrears_years=p.max_arrears_years,
+        ),
     )
 
 

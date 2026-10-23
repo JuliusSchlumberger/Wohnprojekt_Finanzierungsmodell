@@ -39,6 +39,7 @@ INK = "#0b0b0b"
 INK_SECONDARY = "#52514e"
 GRID = "#e8e7e3"
 SURFACE = "#fcfcfb"
+DIVERGING_NEGATIVE = "#e34948"
 TRANCHE_COLORS = {
     "bank": SERIES[0],
     "subsidy": SERIES[1],
@@ -96,13 +97,13 @@ def _layout(fig: go.Figure, title: str, yaxis: str) -> go.Figure:
 
 
 def figure_table(fig: go.Figure) -> pd.DataFrame:
-    """The plotted values as a table, one column per trace, rounded to whole euros."""
+    """The plotted values as a table, one column per trace."""
     columns = {
         trace.name: pd.Series(list(trace.y), index=list(trace.x))
         for trace in fig.data
         if trace.x is not None and len(trace.x) > 2
     }
-    return pd.DataFrame(columns).round(0)
+    return pd.DataFrame(columns)
 
 
 def _kinds(scenario: Scenario) -> dict[str, str]:
@@ -337,5 +338,110 @@ def investment_curve(
             "hoverformat": ",.0f",
         },
         hovermode="closest",
+    )
+    return fig
+
+
+UNCERTAIN_LABELS = {
+    "inflation": "Inflation",
+    "bank_rate_change_pp": "Bankzins nach 10 Jahren",
+    "vacancy_rate": "Mietausfall",
+    "renovation_factor": "Sanierungskosten",
+    "running_cost_factor": "Verwaltung und Versicherung",
+}
+
+
+def rent_distribution(
+    rents: pd.Series, base_rent: float, median: float, safe_rent: float
+) -> go.Figure:
+    """How often each required rent occurs across the sampled variants."""
+    counts, edges = np.histogram(rents.dropna(), bins=20)
+    centers = 0.5 * (edges[:-1] + edges[1:])
+    fig = go.Figure()
+    fig.add_bar(x=centers, y=counts, name="Anzahl Varianten", marker_color=SERIES[0])
+    top = counts.max() * 1.1
+    for value, label, color, dash in [
+        (base_rent, "Ohne Unsicherheit", NEUTRAL, "dot"),
+        (median, "Median", INK, "solid"),
+        (safe_rent, "Sichere Miete (reicht in 90 %)", SERIES[1], "dash"),
+    ]:
+        fig.add_scatter(
+            x=[value, value],
+            y=[0, top],
+            name=label,
+            mode="lines",
+            line={"color": color, "dash": dash},
+        )
+    _layout(fig, "Erforderliche Miete über alle Varianten", "Anzahl Varianten")
+    fig.update_traces(hovertemplate="%{x:,.0f} €: %{y} Varianten", selector={"type": "bar"})
+    fig.update_traces(hovertemplate="%{x:,.2f} €", selector={"mode": "lines"})
+    fig.update_layout(
+        xaxis={
+            "title": "Erforderliche Miete (€ pro Person/Monat)",
+            "tickformat": ",.0f",
+            "ticksuffix": " €",
+            "hoverformat": ",.0f",
+        },
+        yaxis={"ticksuffix": "", "tickformat": "d"},
+        hovermode="closest",
+        bargap=0.05,
+    )
+    return fig
+
+
+def headroom_band(band: pd.DataFrame) -> go.Figure:
+    """Liquidity above the minimum reserve at the safe rent: median and 10-90 % band."""
+    fig = go.Figure()
+    fig.add_scatter(
+        x=band["year"],
+        y=band["p90"],
+        name="90. Perzentil",
+        mode="lines",
+        line={"color": SERIES[0], "width": 0},
+        showlegend=False,
+    )
+    fig.add_scatter(
+        x=band["year"],
+        y=band["p10"],
+        name="10–90 %-Band",
+        mode="lines",
+        fill="tonexty",
+        fillcolor="rgba(42, 120, 214, 0.18)",
+        line={"color": SERIES[0], "width": 0},
+    )
+    fig.add_scatter(
+        x=band["year"], y=band["p50"], name="Median", mode="lines", line_color=SERIES[0]
+    )
+    fig.add_scatter(
+        x=band["year"],
+        y=0 * band["p50"],
+        name="Mindestreserve",
+        mode="lines",
+        line={"dash": "dash", "color": NEUTRAL},
+    )
+    year1 = int(band["year"].iloc[0])
+    title = (
+        "Puffer über der Mindestreserve bei sicherer Miete"
+        f"<br><sup>inflationsbereinigt, in Kaufkraft von {year1} (Jahr 1)</sup>"
+    )
+    fig = _layout(fig, title, "")
+    fig.update_traces(line_width=0, selector={"name": "10–90 %-Band"})
+    fig.update_traces(line_width=0, selector={"name": "90. Perzentil"})
+    return fig
+
+
+def sensitivity(correlations: pd.Series) -> go.Figure:
+    """Rank correlation of each uncertain input with the required rent."""
+    labels = [UNCERTAIN_LABELS.get(k, k) for k in correlations.index]
+    colors = [SERIES[0] if v >= 0 else DIVERGING_NEGATIVE for v in correlations]
+    fig = go.Figure()
+    fig.add_bar(x=labels, y=correlations.to_numpy(), name="Zusammenhang", marker_color=colors)
+    _layout(fig, "Was treibt die Unsicherheit?", "Rangkorrelation mit der Miete")
+    fig.update_traces(hovertemplate="%{x}: %{y:.2f}")
+    fig.update_layout(
+        xaxis={"title": "", "tickformat": None, "hoverformat": None},
+        yaxis={"ticksuffix": "", "tickformat": ".1f", "range": [-1, 1]},
+        hovermode="closest",
+        showlegend=False,
     )
     return fig

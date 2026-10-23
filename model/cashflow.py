@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 import math
-from dataclasses import dataclass, field, replace
+from dataclasses import astuple, dataclass, field, replace
+from functools import lru_cache
 from typing import get_args
 
 import numpy as np
@@ -267,7 +268,17 @@ def debt_schedules(scenario: Scenario, start_liquidity: float) -> dict[str, Tran
     names = [tr.name for tr in tranches]
     if len(set(names)) != len(names):
         raise ValueError(f"tranche names must be unique: {names}")
-    return {tr.name: tranche_schedule(tr, scenario.horizon_years) for tr in tranches}
+    return {tr.name: _cached_schedule(astuple(tr), scenario.horizon_years) for tr in tranches}
+
+
+@lru_cache(maxsize=1024)
+def _cached_schedule(fields: tuple, horizon: int) -> TrancheSchedule:
+    # Rent searches re-run the same fixed tranches many times; only the residual
+    # bank loan changes. Arrays are frozen because the cache shares them.
+    schedule = tranche_schedule(Tranche(*fields), horizon)
+    for array in vars(schedule).values():
+        array.setflags(write=False)
+    return schedule
 
 
 def senior_payoff_year(scenario: Scenario, schedules: dict[str, TrancheSchedule]) -> int | None:

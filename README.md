@@ -6,7 +6,8 @@ member retirement-provision view, and admissible investment for a target rent.
 The full specification is in [docs/spec.md](docs/spec.md).
 
 Status: calculation core (`model/`) and a local Panel app (`app/`) with the start page
-and modes 1 (required rent), 2 (member view) and 3 (admissible investment).
+modes 1 (required rent), 2 (member view), 3 (admissible investment) and an
+uncertainty page (spread of the required rent).
 
 ## Quick start
 
@@ -29,12 +30,33 @@ table = simulate(s, rent).table  # one row per year
 ## Layout
 
 ```
-model/        calculation core (no UI): types, cashflow, solve, presets
-app/          Panel dashboard: main (pages), widgets (inputs), charts (Plotly), layout (tiles, boxes)
+model/        calculation core (no UI): types, cashflow, solve, presets, member,
+              uncertainty
+app/          Panel dashboard: main (pages), widgets (inputs), charts (Plotly), layout
+              (tiles, boxes), methodik.md (text of the methodology page)
+scripts/      build_site.py (browser version), site_entry.py (its entry point)
+.github/      workflow: test, build and publish on GitHub Pages
 tests/        unit tests and trias reference test
 reference/    trias template, filled reference case and its reader/generator
 docs/spec.md  specification
 ```
+
+## Browser version (GitHub Pages)
+
+The dashboard also runs entirely in the browser (Pyodide), without a server. Every push to
+`main` runs lint and tests, builds it and publishes it on GitHub Pages
+(`.github/workflows/pages.yml`). One-time setup in the repository on GitHub:
+**Settings → Pages → Build and deployment → Source: GitHub Actions**.
+
+Build and try it locally:
+
+```bash
+python scripts/build_site.py --out site
+python -m http.server 8000 --directory site   # then open http://localhost:8000
+```
+
+The first load downloads Pyodide and the Python packages (some tens of MB) and takes a
+while; afterwards the browser caches them.
 
 ## Reference test
 

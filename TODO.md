@@ -1,6 +1,4 @@
-- model/cashflow.py: `_run` loops over years per tranche and `_settle` per year (all pages 0.15 s per input change); vectorize over samples for uncertainty (spec 3.4, < 5 s with n = 300).
-- model/presets.py: scenario JSON presets and legal-form presets (spec 4.5, 4.6), step 6.
-- app/widgets.py:218: legal-form preset missing (needs presets, step 6).
-- model/presets.py:91: subsidy rate/term (1.5 %, 30 y), purchase-cost rate (10 %) and ground-rent rate (4 %) fixed; expose in layer 2.
 - model/cashflow.py:51: `amortization_years` returns NaN for a zero-principal annuity with `initial_repayment_rate` (bank loan of exactly 0 EUR when own funds cover investment + opening liquidity).
 - model/cashflow.py:42: `cost_index` is 1.02 in year 1, so the rent "in year 1" (input, KPIs) is charged x(1+inflation) in year 1; decide whether the input means year 0 or year 1 prices.
+- app/main.py: scenario and legal-form presets (spec 4.5, 4.6) deferred by decision; scenarios/ is empty.
+- app/main.py: scenario comparison page and JSON export/import (spec 4.2 page 5, step 6) deferred by decision.

@@ -16,6 +16,9 @@ dev = ["pytest", "openpyxl", "ruff"]
 [tool.setuptools]
 packages = ["model", "app"]
 
+[tool.setuptools.package-data]
+app = ["*.md"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 markers = ["reference: needs the trias Excel in reference/"]

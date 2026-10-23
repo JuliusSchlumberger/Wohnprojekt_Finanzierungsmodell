@@ -5,7 +5,7 @@ from __future__ import annotations
 import panel as pn
 import param
 
-from app.layout import START_BOX_HEIGHT, START_BOX_WIDTH, box
+from app.layout import ADVANCED_BOX_HEIGHT, START_BOX_HEIGHT, START_BOX_WIDTH, box
 from model.member import MemberInputs
 from model.presets import BANK_RATE_CHANGE_STEP, ProjectInputs
 
@@ -22,7 +22,7 @@ MEMBER_PRESETS = {
 INFO = {
     "land_price": (
         "Kaufpreis des Grundstücks. Bei Erbbaurecht wird es nicht gekauft; der Betrag gilt "
-        "dann als Grundstückswert, auf den der Erbbauzins (4 % pro Jahr) berechnet wird."
+        "dann als Grundstückswert, auf den der Erbbauzins (Satz unter „Erweitert“) berechnet wird."
     ),
     "building_price": "Kaufpreis des Hauses ohne Grundstück.",
     "renovation_cost": (
@@ -31,7 +31,8 @@ INFO = {
     "tenure": (
         "Kauf: das Grundstück wird mitfinanziert, auch die Kaufnebenkosten darauf. "
         "Erbbaurecht: das Grundstück wird nicht gekauft, stattdessen fällt jährlich ein "
-        "Erbbauzins von 4 % des Grundstückswerts an, der mit der Inflation steigt."
+        "Erbbauzins auf den Grundstückswert an (Standard 4 %, unter „Erweitert“), der mit der "
+        "Inflation steigt."
     ),
     "persons": "Anzahl der Personen, die im Projekt wohnen und Miete zahlen.",
     "equity_per_person": (
@@ -57,8 +58,9 @@ INFO = {
     ),
     "direct_loan_rate_10y_pct": ("Zins auf 10-Jahres-Direktkredite, jährlich ausgezahlt."),
     "subsidy": (
-        "Förderdarlehen (z. B. KfW oder Landesförderbank), 1,5 % Zins, Annuität über "
-        "30 Jahre. Nur für Sanierungskosten nutzbar, deshalb höchstens so hoch wie diese. "
+        "Förderdarlehen (z. B. KfW oder Landesförderbank) als Annuität; Zins und Laufzeit "
+        "unter „Erweitert“ (Standard 1,5 % über 30 Jahre). Nur für Sanierungskosten nutzbar, "
+        "deshalb höchstens so hoch wie diese. "
         "Zählt nicht als eigenkapitalähnlich."
     ),
     "bank_rate_pct": (
@@ -98,10 +100,40 @@ INFO = {
     "initial_vacancy_pct": (
         "Mietausfall in den ersten 3 Jahren, solange das Haus noch bezogen und saniert wird."
     ),
+    "maintenance_rate_pct": (
+        "Was die laufende Instandhaltung tatsächlich kostet, in % des "
+        "Wiederherstellungswerts pro Jahr. Wird aus der Instandhaltungsrücklage bezahlt."
+    ),
+    "admin_cost_per_year": (
+        "Verwaltung, Buchhaltung, Prüfung (bei eG Prüfungsverband), Bankgebühren. Steigt mit "
+        "der Inflation."
+    ),
+    "insurance_per_year": "Gebäude- und Haftpflichtversicherung. Steigt mit der Inflation.",
+    "min_liquidity_months": (
+        "So viele Monatsmieten muss das Konto immer mindestens enthalten. Sie wird zu Beginn "
+        "über das Bankdarlehen finanziert. Mehr Reserve heißt mehr Sicherheit, aber auch eine "
+        "höhere Miete."
+    ),
+    "max_arrears_years": (
+        "Wie lange eine fällige Rückzahlung von Direkt- oder Mitgliederdarlehen höchstens "
+        "aufgeschoben werden darf. 0 heißt: alles muss pünktlich gezahlt werden."
+    ),
+    "ancillary_cost_pct": (
+        "Grunderwerbsteuer, Notar, Grundbuch und ggf. Makler, in % des Kaufpreises von Haus "
+        "und (bei Kauf) Grundstück. Die Grunderwerbsteuer liegt je nach Bundesland bei "
+        "3,5 bis 6,5 %."
+    ),
+    "leasehold_rate_pct": (
+        "Jährlicher Erbbauzins in % des Grundstückswerts. Steigt mit der Inflation. Gilt nur "
+        "bei Erbbaurecht."
+    ),
+    "subsidy_rate_pct": "Zins der Förderdarlehen, fest über die ganze Laufzeit.",
+    "subsidy_term_years": "Laufzeit der Förderdarlehen; sie werden als Annuität getilgt.",
     "maintenance_reserve_pct": (
         "So viel vom Wiederherstellungswert fließt jedes Jahr in die "
         "Instandhaltungsrücklage, mit der Inflation steigend. Daraus wird die laufende "
-        "Instandhaltung (1,5 %) bezahlt; der Rest bleibt für größere Arbeiten angespart. Die "
+        "Instandhaltung (Standard 1,5 %, unter „Erweitert“) bezahlt; der Rest bleibt für größere "
+        "Arbeiten angespart. Die "
         "Rücklage ist ein eigener Topf und zählt nicht zur Liquidität."
     ),
     "member_type": (
@@ -134,7 +166,7 @@ INFO = {
     ),
     "bank_loan": (
         "Das Bankdarlehen schließt die Lücke: Gesamtinvestition + Startliquidität "
-        "(6 Monatsmieten, A7) − Einlagen − Mitgliederdarlehen − Direktkredite − "
+        "(Mindestreserve) − Einlagen − Mitgliederdarlehen − Direktkredite − "
         "Förderdarlehen. Weil die Startliquidität von der Miete abhängt, wird es zusammen "
         "mit der Miete berechnet."
     ),
@@ -170,6 +202,15 @@ WIDGETS = {
     "min_equity_like_pct": _SLIDER,
     "target_rent": {"type": pn.widgets.FloatSlider, "step": 10},
     "maintenance_reserve_pct": _SLIDER,
+    "maintenance_rate_pct": _SLIDER,
+    "admin_cost_per_year": _EUR_PERSON,
+    "insurance_per_year": _EUR_PERSON,
+    "min_liquidity_months": _SLIDER,
+    "max_arrears_years": _INT,
+    "ancillary_cost_pct": _SLIDER,
+    "leasehold_rate_pct": _SLIDER,
+    "subsidy_rate_pct": _SLIDER,
+    "subsidy_term_years": _INT,
     "vacancy_pct": _SLIDER,
     "initial_vacancy_pct": _SLIDER,
     "member_type": {"type": pn.widgets.Select},
@@ -212,6 +253,13 @@ SECTIONS = {
     "Überschuss und Zielmiete": ["surplus_use", "target_rent"],
     "Mitglied: Kapital (Modus 2)": ["member_type", "member_equity", "member_loan_personal"],
     "Mitglied: Vergleich (Modus 2)": ["entry_year", "exit_year", "market_rent", "alt_return_pct"],
+}
+
+ADVANCED_SECTIONS = {
+    "Betrieb": ["admin_cost_per_year", "insurance_per_year", "maintenance_rate_pct"],
+    "Liquidität und Rückstände": ["min_liquidity_months", "max_arrears_years"],
+    "Kauf und Erbbaurecht": ["ancillary_cost_pct", "leasehold_rate_pct"],
+    "Förderdarlehen": ["subsidy_rate_pct", "subsidy_term_years"],
 }
 
 
@@ -289,6 +337,33 @@ class Inputs(param.Parameterized):
         step=1,
         label="Mietausfall erste 3 Jahre (%)",
     )
+    maintenance_rate_pct = param.Number(
+        100 * _D.maintenance_rate, bounds=(0.5, 3), step=0.1, label="Instandhaltung (%)"
+    )
+    admin_cost_per_year = param.Number(
+        _D.admin_cost_per_year, bounds=(0, None), label="Verwaltung pro Jahr (€)"
+    )
+    insurance_per_year = param.Number(
+        _D.insurance_per_year, bounds=(0, None), label="Versicherung pro Jahr (€)"
+    )
+    min_liquidity_months = param.Number(
+        _D.min_liquidity_months, bounds=(1, 12), step=1, label="Mindestreserve (Monatsmieten)"
+    )
+    max_arrears_years = param.Integer(
+        _D.max_arrears_years, bounds=(0, 10), label="Rückstand höchstens (Jahre)"
+    )
+    ancillary_cost_pct = param.Number(
+        100 * _D.ancillary_cost_rate, bounds=(0, 15), step=0.5, label="Kaufnebenkosten (%)"
+    )
+    leasehold_rate_pct = param.Number(
+        100 * _D.leasehold_rate, bounds=(0, 8), step=0.1, label="Erbbauzins (%)"
+    )
+    subsidy_rate_pct = param.Number(
+        100 * _D.subsidy_rate, bounds=(0, 5), step=0.1, label="Zins Förderdarlehen (%)"
+    )
+    subsidy_term_years = param.Integer(
+        _D.subsidy_term_years, bounds=(10, 40), label="Laufzeit Förderdarlehen (Jahre)"
+    )
     member_type = param.Selector(
         objects=list(MEMBER_PRESETS), default="Eigene Angaben", label="Mitgliedertyp"
     )
@@ -327,6 +402,15 @@ class Inputs(param.Parameterized):
             inflation=self.inflation_pct / 100,
             maintenance_reserve_rate=self.maintenance_reserve_pct / 100,
             vacancy_rate=self.vacancy_pct / 100,
+            maintenance_rate=self.maintenance_rate_pct / 100,
+            admin_cost_per_year=self.admin_cost_per_year,
+            insurance_per_year=self.insurance_per_year,
+            min_liquidity_months=self.min_liquidity_months,
+            max_arrears_years=self.max_arrears_years,
+            ancillary_cost_rate=self.ancillary_cost_pct / 100,
+            leasehold_rate=self.leasehold_rate_pct / 100,
+            subsidy_rate=self.subsidy_rate_pct / 100,
+            subsidy_term_years=self.subsidy_term_years,
             initial_vacancy_rate=self.initial_vacancy_pct / 100,
             surplus_use=self.surplus_use,
         )
@@ -366,7 +450,9 @@ class Inputs(param.Parameterized):
     def widgets(self, names: list[str]) -> list[pn.viewable.Viewable]:
         return [self.widget(n) for n in names]
 
-    @param.depends("land_price", "building_price", "renovation_cost", "tenure")
+    @param.depends(
+        "land_price", "building_price", "renovation_cost", "tenure", "ancillary_cost_pct"
+    )
     def cost_summary(self) -> pn.viewable.Viewable:
         try:
             p = self.to_project()
@@ -404,7 +490,22 @@ class Inputs(param.Parameterized):
                     width=START_BOX_WIDTH,
                 )
             )
-        return pn.FlexBox(*boxes, sizing_mode="stretch_width")
+        advanced = [
+            box(title, *self.widgets(names), height=ADVANCED_BOX_HEIGHT, width=START_BOX_WIDTH)
+            for title, names in ADVANCED_SECTIONS.items()
+        ]
+        return pn.Column(
+            pn.FlexBox(*boxes, sizing_mode="stretch_width"),
+            pn.Accordion(
+                (
+                    "Erweitert: Betrieb, Reserve, Nebenkosten, Förderkonditionen",
+                    pn.FlexBox(*advanced, sizing_mode="stretch_width"),
+                ),
+                active=[],
+                sizing_mode="stretch_width",
+            ),
+            sizing_mode="stretch_width",
+        )
 
 
 def eur(value: float, digits: int = 0) -> str:

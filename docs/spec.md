@@ -117,7 +117,7 @@ Result enthält Zeitreihen (Jahr × Größe) als numpy-Arrays bzw. DataFrame: Mi
 - `member.member_view(scenario, result, MemberInputs) -> DataFrame` (Modus 2).
 
 ### 3.4 Unsicherheit (`uncertainty.py`)
-Jeder numerische Parameter kann statt eines Werts eine Bandbreite `(low, high)` oder `(low, mode, high)` (Dreiecksverteilung) erhalten. `sample(scenario, n=300, method="lhs")` zieht Latin-Hypercube-Stichproben, führt den gewählten Modus aus und liefert Perzentile (10/50/90) der Zeitreihen und Kennzahlen. Rechenzeit im Browser muss unter 5 s bleiben; n ist einstellbar.
+Fünf Eingaben bekommen eine Spanne `(low, high)`; der aktuelle Wert ist der wahrscheinlichste (Dreiecksverteilung): Inflation, Bankzins nach Ende der Zinsbindung (± Prozentpunkte), Mietausfall, Sanierungskosten und Verwaltung + Versicherung (als Faktor auf die Schätzung). `rent_uncertainty(inputs, ranges, n, seed)` zieht n Latin-Hypercube-Stichproben (fester Startwert), sucht je Variante die erforderliche Miete (Klammer um die Basismiete, auf 0,50 € genau) und liefert Perzentile 10/50/90, die sichere Miete (90. Perzentil), das Band des Puffers über der Mindestreserve bei sicherer Miete und die Rangkorrelation jeder Eingabe mit der Miete. 200 Varianten ≈ 1,7 s lokal.
 
 ### 3.5 Tests (`tests/`)
 - Annuität, Ratentilgung, Anlaufjahre, Endfällig gegen geschlossene Formeln (PMT).
@@ -142,8 +142,8 @@ Panel (bevorzugt) oder marimo; Export nach WebAssembly über `panel convert` bzw
 
 ### 4.3 Komplexitätsschichten
 - **Schicht 1 (Startseite, geteilt)**: Grundstück, Haus, Sanierung (Kaufnebenkosten 10 % automatisch), Kauf/Erbbaurecht, Personenzahl, Inflation, A4-Toggle; Einlagen; Mitgliederdarlehen (Betrag, Zins); Direktkredite 5 und 10 Jahre (je Betrag, Zins); Förderdarlehen (höchstens Sanierungskosten); Bank (Zins, Annuität/Ratenkredit, Laufzeit, Zins nach 10 Jahren −1/±0/+1 Prozentpunkt), Mindestanteil Eigenkapital + Nachrang, Zielmiete. Rechtsform-Preset folgt mit Schritt 6.
-- **Schicht 2 (ausklappbar „Erweitert")**: vollständige Tranchenliste (Tabelle, Zeilen hinzufügen/entfernen), Betriebsparameter, Inflation, Zinsbindung und Anschlusszins, Mindestreserve, Mitgliedertypen-Tabelle, Konditionen der Förderdarlehen, Kaufnebenkostensatz, Erbbauzinssatz.
-- **Schicht 3 (Schalter „Unsicherheit")**: zu jedem Schicht-2-Parameter ein Bandbreitenfeld; Diagramme zeigen Median und 10–90 %-Band; n einstellbar.
+- **Schicht 2 (Startseite, ausklappbar „Erweitert“)**: Verwaltung und Versicherung pro Jahr, tatsächliche Instandhaltung (% Wiederherstellungswert), Mindestreserve (Monatsmieten), maximale Dauer von Rückständen, Kaufnebenkostensatz, Erbbauzinssatz, Zins und Laufzeit der Förderdarlehen. Keine frei editierbare Darlehensliste und keine Mitgliedertypen-Tabelle: Darlehensarten sind fest, Einlagen und Mitgliederdarlehen gelten pro Person.
+- **Schicht 3 (eigene Seite „Unsicherheit“)**: Spannen für die fünf Eingaben aus §3.4, Anzahl Varianten (50–300), Rechnung nur auf Knopfdruck; Ergebnisse werden als veraltet markiert, sobald sich eine Annahme ändert. Ausgabe: Kennzahlen (Median, Spanne, sichere Miete), Verteilung der Miete, Pufferband, Treiber der Unsicherheit.
 
 ### 4.4 Mitgliedertypen
 Tabelle mit Spalten: Name, Anzahl, Privatraum m², Einlage, Mitgliederdarlehen, Darlehenszins, Zinsmodus. Default: ein Typ „Standard". Presets: „Wenig Kapital" (Einlage 2.000 €), „Mittel" (10.000 €), „Viel" (50.000 € Einlage + 25.000 € Darlehen). Die Miete ist für alle gleich pro m²; unterschiedliche Einlagen wirken über Modus 2 und über die Gesamtsumme des Eigenkapitals.
@@ -177,7 +177,7 @@ wohnprojekt-dashboard/
   scenarios/              JSON-Presets
   reference/              trias-Excel + Auslese-Skript für den Referenztest
   tests/
-  docs/methodik.md        Inhalt der Methodikseite
+  app/methodik.md         Inhalt der Methodikseite (Paketdaten, auch im Browser-Build)
   .github/workflows/pages.yml
 ```
 

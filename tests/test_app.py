@@ -164,13 +164,14 @@ def test_every_chart_has_reading_help_and_a_value_table():
 
 def test_start_page_boxes_have_equal_height_and_place_every_input_once():
     from app.layout import START_BOX_HEIGHT
-    from app.widgets import SECTIONS
+    from app.widgets import ADVANCED_SECTIONS, SECTIONS
 
     inputs = Inputs()
-    boxes = inputs.all_inputs().objects
+    boxes = inputs.all_inputs().objects[0].objects
     assert len(boxes) == len(SECTIONS)
     assert {b.height for b in boxes} == {START_BOX_HEIGHT}
-    placed = [n for names in SECTIONS.values() for n in names]
+    sections = {**SECTIONS, **ADVANCED_SECTIONS}
+    placed = [n for names in sections.values() for n in names]
     assert sorted(placed) == sorted(inputs.input_names())
 
 
@@ -189,3 +190,41 @@ def test_equity_and_member_loans_scale_with_persons():
     project = inputs.to_project()
     assert project.equity == 10 * inputs.equity_per_person
     assert project.member_loans == 10 * inputs.member_loan_per_person
+
+
+def test_header_navigation_switches_the_visible_page_and_back():
+    from app.main import serve
+
+    template = serve()
+    nav, tabs = template.header[0], template.main[0]
+    for page in (2, 3, 0, 1):
+        nav.value = page
+        assert tabs.active == page
+    tabs.active = 3
+    assert nav.value == 3
+
+
+def test_uncertainty_page_computes_on_demand_and_flags_stale_results():
+    from app.main import UncertaintyPage
+
+    page = UncertaintyPage()
+    assert page.result is None
+    page.n_samples = 50
+    page.compute()
+    assert not page.stale
+    assert "Sichere Miete" in [k.label for k in page.kpi_items()]
+    for fig, help_text, _fmt in page.chart_items():
+        assert len(help_text.strip()) > 50
+        assert not charts.figure_table(fig).empty
+    page.inputs.inflation_pct = 3.0
+    assert page.stale
+
+
+def test_methodology_page_lists_every_input_with_its_default():
+    from app.main import methodik_page, parameter_table
+
+    inputs = Inputs()
+    table = parameter_table(inputs)
+    labels = [inputs.param[n].label for n in inputs.input_names()]
+    assert all(label in table for label in labels)
+    assert methodik_page(inputs).objects[0].object.startswith("# Methodik")

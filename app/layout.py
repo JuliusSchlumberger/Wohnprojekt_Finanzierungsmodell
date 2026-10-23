@@ -20,6 +20,7 @@ BOX = {
 }
 TONES = {"good": "#0ca30c", "warning": "#fab219", "critical": "#d03b3b"}
 START_BOX_HEIGHT = 400
+ADVANCED_BOX_HEIGHT = 250
 START_BOX_WIDTH = 300
 
 
@@ -62,13 +63,23 @@ def kpi_grid(kpis: list[Kpi]) -> pn.viewable.Viewable:
     return pn.FlexBox(*(kpi_tile(k) for k in kpis), sizing_mode="stretch_width")
 
 
-def _table_pane(table: pd.DataFrame) -> pn.viewable.Viewable:
-    formatted = table.map(lambda v: "" if pd.isna(v) else f"{v:,.0f} €".replace(",", "."))
+VALUE_FORMATS = {
+    "eur": lambda v: f"{v:,.0f} €".replace(",", "."),
+    "count": lambda v: f"{v:.0f}",
+    "ratio": lambda v: f"{v:.2f}".replace(".", ","),
+}
+
+
+def _table_pane(table: pd.DataFrame, value_format: str) -> pn.viewable.Viewable:
+    fmt = VALUE_FORMATS[value_format]
+    formatted = table.map(lambda v: "" if pd.isna(v) else fmt(v))
+    if table.index.dtype.kind == "f":
+        formatted.index = [VALUE_FORMATS["eur"](v) for v in table.index]
     formatted.index.name = "Jahr" if table.index.dtype.kind in "iu" else ""
     return pn.pane.DataFrame(formatted, max_height=320, sizing_mode="stretch_width")
 
 
-def chart_block(fig: go.Figure, help_text: str) -> pn.viewable.Viewable:
+def chart_block(fig: go.Figure, help_text: str, value_format: str = "eur") -> pn.viewable.Viewable:
     """A chart with its reading guide and its values as a table, both on demand."""
     return pn.Column(
         pn.pane.Plotly(fig, sizing_mode="stretch_width", config={"displaylogo": False}),
@@ -77,7 +88,7 @@ def chart_block(fig: go.Figure, help_text: str) -> pn.viewable.Viewable:
                 "Wie lese ich diese Grafik?",
                 pn.pane.Markdown(help_text, sizing_mode="stretch_width"),
             ),
-            ("Werte als Tabelle", _table_pane(figure_table(fig))),
+            ("Werte als Tabelle", _table_pane(figure_table(fig), value_format)),
             active=[],
             sizing_mode="stretch_width",
         ),

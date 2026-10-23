@@ -140,3 +140,39 @@ def test_max_investment_rises_with_target_rent():
 def test_max_investment_rejects_rent_too_low_for_own_funds():
     with pytest.raises(ValueError):
         max_investment(_by_investment, 1.0, ProjectInputs().own_funds)
+
+
+@pytest.mark.parametrize(
+    "change",
+    [
+        {"admin_cost_per_year": 20_000.0},
+        {"insurance_per_year": 20_000.0},
+        {"min_liquidity_months": 12.0},
+        {"ancillary_cost_rate": 0.15},
+        {"max_arrears_years": 0},
+        {"subsidy": 300_000.0, "subsidy_rate": 0.05},
+        {"tenure": "leasehold", "leasehold_rate": 0.06},
+    ],
+)
+def test_advanced_inputs_that_add_cost_raise_required_rent(change):
+    base = {
+        "subsidy": 300_000.0,
+        "subsidy_rate": 0.0,
+        "tenure": "leasehold",
+        "leasehold_rate": 0.02,
+    }
+    base = {k: v for k, v in base.items() if k in change}
+    assert required_rent(build_scenario(ProjectInputs(**change))) > required_rent(
+        build_scenario(ProjectInputs(**base))
+    )
+
+
+def test_actual_maintenance_is_spent_from_reserve_without_changing_rent():
+    cheap = build_scenario(ProjectInputs(maintenance_rate=0.010))
+    dear = build_scenario(ProjectInputs(maintenance_rate=0.019))
+    assert required_rent(cheap) == required_rent(dear)
+    pot = {
+        k: simulate(s, required_rent(s)).table.maintenance_reserve.iloc[-1]
+        for k, s in (("cheap", cheap), ("dear", dear))
+    }
+    assert pot["cheap"] > pot["dear"]

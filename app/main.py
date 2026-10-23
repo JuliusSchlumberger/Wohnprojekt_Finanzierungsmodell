@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import math
+from importlib.resources import files
 
 import numpy as np
 import panel as pn
@@ -11,12 +12,13 @@ import plotly.graph_objects as go
 
 from app import charts
 from app.layout import ACCENT, START_BOX_WIDTH, Kpi, box, chart_block, kpi_grid
-from app.widgets import INFO, Inputs, eur, with_info
+from app.widgets import ADVANCED_SECTIONS, INFO, SECTIONS, Inputs, eur, with_info
 from model import Result, Scenario, max_investment, required_rent, simulate
 from model.cashflow import capital_structure
 from model.member import member_view
 from model.presets import build_scenario
 from model.solve import HEADROOM_TOLERANCE_EUR, is_affordable
+from model.uncertainty import Ranges, rent_uncertainty
 
 TITLE = "Wohnprojekt-Finanzierungsrechner"
 
@@ -66,14 +68,18 @@ ASSUMPTIONS = [
         "50 Jahre. Miete, Betriebskosten und Erbbauzins steigen mit der Inflation; Zins und "
         "Tilgung sind nominal fest.",
     ),
-    ("Mindestliquidität", "Das Konto fällt nie unter 6 Monatsmieten."),
+    (
+        "Mindestliquidität",
+        "Das Konto fällt nie unter die Mindestreserve (Standard 6 Monatsmieten).",
+    ),
     ("Steuern", "Nicht modelliert."),
     (
         "Direkt- und Mitgliederdarlehen",
         "Nachrangig und endfällig. Direktkredite laufen 5 oder 10 Jahre, Zinsen jährlich "
         "ausgezahlt; Mitgliederdarlehen 15 Jahre, Zinsen thesauriert. Was am Fälligkeitstag "
         "nicht ohne Unterschreiten der Mindestreserve zurückgezahlt werden kann, wird so "
-        "schnell wie möglich nachgezahlt, spätestens nach 3 Jahren, und verzinst sich bis dahin.",
+        "schnell wie möglich nachgezahlt, innerhalb einer Frist (Standard 3 Jahre), und verzinst "
+        "sich bis dahin.",
     ),
 ]
 
@@ -88,10 +94,12 @@ Das Modell rechnet 50 Jahre in Jahresschritten. Jedes Jahr gilt:
 - **Betriebskosten**: Zuführung zur Instandhaltungsrücklage (Anteil des
   Wiederherstellungswerts), Verwaltung und Versicherung.
 - **Zins und Tilgung**: je Darlehen nach seinen Konditionen, nominal fest.
-- **Mindestreserve**: das Konto darf nie unter 6 Monatsmieten fallen.
+- **Mindestreserve**: das Konto darf nie unter die Mindestreserve fallen (Standard
+  6 Monatsmieten, unter „Erweitert“).
 - **Rückstände**: würde eine fällige Rückzahlung das Konto unter die Reserve drücken,
   wird nur der mögliche Teil gezahlt; der Rest wird so schnell wie möglich nachgezahlt
-  und muss nach spätestens 3 Jahren beglichen sein. Bis dahin fallen Zinsen an.
+  und muss innerhalb einer Frist beglichen sein (Standard 3 Jahre, unter „Erweitert“). Bis dahin
+  fallen Zinsen an.
 - **Überschuss (A4)**: erst wenn kein Rückstand offen ist und das Konto über der Reserve
   alle noch offenen Direkt- und Mitgliederdarlehen decken könnte, fließt der Rest in
   Mietsenkung, Mietrückzahlung oder Solidartransfer.
@@ -163,7 +171,7 @@ Wie viel das Projekt am Ende jedes Jahres noch schuldet, je Darlehen und als Sum
 - **Rückstände** zeigen, was nach der Fälligkeit noch nachgezahlt werden muss.
 """,
     "liquidity": """
-Kontostand am Jahresende im Vergleich zur Mindestreserve von 6 Monatsmieten (gestrichelt),
+Kontostand am Jahresende im Vergleich zur Mindestreserve (gestrichelt, Standard 6 Monatsmieten),
 inflationsbereinigt.
 
 - Die Miete ist so gewählt, dass das Konto die Reserve **nie unterschreitet**. Wo die
@@ -177,7 +185,7 @@ inflationsbereinigt.
     "arrears": """
 - **Balken**: wie viel von fälligen Direkt- und Mitgliederdarlehen am Fälligkeitstag nicht
   gezahlt werden konnte, ohne die Mindestreserve zu unterschreiten.
-- **Linie**: wie viel davon am Jahresende noch offen ist. Sie muss nach spätestens 3 Jahren
+- **Linie**: wie viel davon am Jahresende noch offen ist. Sie muss innerhalb der Frist
   wieder auf null sein; bis dahin zahlt das Projekt Zinsen auf den Rückstand.
 
 Für Darlehensgeber*innen heißt ein Balken: Sie bekommen ihr Geld später als vereinbart.
@@ -420,12 +428,13 @@ class Mode1(_Page):
         payoff = m["senior_payoff_year"]
         headroom = tab["headroom"].loc[1:]
         tightest = int(headroom.index[headroom <= headroom.min() + HEADROOM_TOLERANCE_EUR][0])
+        years = self.inputs.max_arrears_years
         items = [
             Kpi(
                 "Erforderliche Miete",
                 eur(m["rent_per_person"], 2),
                 "Niedrigste Miete pro Person und Monat, bei der das Konto in allen 50 Jahren "
-                "über der Mindestreserve bleibt und jeder Rückstand nach höchstens 3 Jahren "
+                f"über der Mindestreserve bleibt und jeder Rückstand nach höchstens {years} Jahren "
                 "beglichen ist. Danach steigt sie mit der Inflation.",
                 note="pro Person und Monat",
             ),
@@ -472,7 +481,7 @@ class Mode1(_Page):
                     "Nicht pünktlich zurückgezahlt",
                     eur(late.sum()),
                     "Teil fälliger Direkt- und Mitgliederdarlehen, der am Fälligkeitstag nicht "
-                    "gezahlt werden konnte (nominal). Er wird innerhalb von 3 Jahren "
+                    f"gezahlt werden konnte (nominal). Er wird innerhalb von {years} Jahren "
                     "nachgezahlt; Details in der Grafik unten.",
                     note=", ".join(str(int(tab["year"][t])) for t in late.index),
                     tone="warning",
@@ -721,6 +730,277 @@ class Mode3(_Page):
         ]
 
 
+UNCERTAINTY_TEXT = """
+Viele Annahmen kennt ihr heute nicht genau. Hier gebt ihr für die fünf wichtigsten eine
+Spanne an. Der Rechner zieht daraus viele Varianten (Latin-Hypercube-Stichprobe) und sucht
+für jede die erforderliche Miete wie in Modus 1, auf 50 Cent genau.
+
+- Innerhalb jeder Spanne ist der Wert von der Startseite am **wahrscheinlichsten**;
+  Werte zu den Rändern hin werden seltener (Dreiecksverteilung).
+- Die **sichere Miete** ist die Miete, die in 90 % der Varianten reicht.
+- Alle übrigen Annahmen kommen unverändert von der Startseite.
+- Gleiche Eingaben liefern immer dasselbe Ergebnis (fester Zufallsstartwert).
+"""
+
+UNCERTAINTY_HELP = {
+    "rent_distribution": """
+Jeder Balken zählt, wie viele Varianten eine erforderliche Miete in diesem Bereich haben.
+
+- **Gepunktet**: die Miete aus Modus 1, mit den Werten der Startseite.
+- **Durchgezogen**: der Median; die Hälfte der Varianten braucht weniger, die Hälfte mehr.
+- **Gestrichelt**: die sichere Miete. Nur 10 % der Varianten brauchen mehr.
+
+Je breiter die Verteilung, desto mehr hängt die Miete von Annahmen ab, die ihr heute nicht
+kennt. Ein Abstand zwischen Modus-1-Miete und sicherer Miete ist ein Puffer, den ihr
+einplanen könnt.
+""",
+    "headroom_band": """
+Wie viel Geld über der Mindestreserve auf dem Konto liegt, wenn ihr die sichere Miete
+ansetzt, inflationsbereinigt.
+
+- **Linie**: Median über alle Varianten.
+- **Band**: 80 % der Varianten liegen darin (zwischen dem 10. und 90. Perzentil).
+- Der Puffer ist in jedem Jahr höchstens so hoch, bis der Überschuss abgeschöpft wird;
+  danach liegt er nahe null.
+
+Liegt das untere Bandende unter null, unterschreiten in diesem Jahr einige Varianten die
+Reserve. Das sind die 10 %, für die die sichere Miete nicht reicht.
+""",
+    "sensitivity": """
+Wie stark jede unsichere Annahme mit der erforderlichen Miete zusammenhängt
+(Rangkorrelation, −1 bis +1).
+
+- **Positiv** (blau): ist die Annahme höher, steigt die Miete, z. B. höhere Sanierungskosten.
+- **Negativ** (rot): ist die Annahme höher, sinkt die Miete. Bei der Inflation liegt das
+  daran, dass die Miete mit der Inflation wächst, Zins und Tilgung aber nicht.
+- Je länger der Balken, desto mehr lohnt es sich, diese Annahme genauer zu klären.
+""",
+}
+
+RANGE_INFO = {
+    "inflation_range": "Spanne der jährlichen Inflation. Wahrscheinlichster Wert: Startseite.",
+    "bank_change_range": (
+        "Änderung des Bankzinses nach Ende der Zinsbindung (10 Jahre), in Prozentpunkten. "
+        "Wahrscheinlichster Wert: die Wahl auf der Startseite (sinkt −1, bleibt 0, steigt +1)."
+    ),
+    "vacancy_range": (
+        "Spanne des Mietausfalls ab dem 4. Jahr. Wahrscheinlichster Wert: Startseite."
+    ),
+    "renovation_range": (
+        "Sanierungskosten in % eurer Schätzung. 130 % heißt: die Sanierung wird 30 % teurer. "
+        "Wahrscheinlichster Wert: 100 %."
+    ),
+    "running_range": (
+        "Verwaltung und Versicherung in % eurer Schätzung. Wahrscheinlichster Wert: 100 %."
+    ),
+    "n_samples": (
+        "Mehr Varianten machen das Ergebnis stabiler, dauern aber länger (etwa 1 Sekunde "
+        "pro 100 Varianten)."
+    ),
+}
+
+
+class UncertaintyPage(param.Parameterized):
+    """Spread of the required rent for ranges of the most uncertain inputs."""
+
+    inputs = param.ClassSelector(class_=Inputs)
+    inflation_range = param.Range((1.0, 4.0), bounds=(0.0, 8.0), label="Inflation (%)")
+    bank_change_range = param.Range(
+        (-1.0, 3.0), bounds=(-3.0, 5.0), label="Bankzins nach 10 J. (± Pp.)"
+    )
+    vacancy_range = param.Range((2.0, 8.0), bounds=(0.0, 20.0), label="Mietausfall (%)")
+    renovation_range = param.Range(
+        (90.0, 130.0), bounds=(50.0, 200.0), label="Sanierung (% der Schätzung)"
+    )
+    running_range = param.Range(
+        (80.0, 150.0), bounds=(50.0, 250.0), label="Verwaltung, Versicherung (%)"
+    )
+    n_samples = param.Integer(200, bounds=(50, 300), label="Anzahl Varianten")
+    result = param.Parameter(default=None)
+    error = param.String(default="")
+    stale = param.Boolean(default=True)
+
+    def __init__(self, **params):
+        super().__init__(inputs=params.pop("inputs", None) or Inputs(), **params)
+        self.inputs.param.watch(self._mark_stale, self.inputs.input_names())
+        ranges = [p for p in self.param if p.endswith("_range")] + ["n_samples"]
+        self.param.watch(self._mark_stale, ranges)
+
+    def _mark_stale(self, *_events) -> None:
+        self.stale = True
+
+    def ranges(self) -> Ranges:
+        def frac(r):
+            return (r[0] / 100, r[1] / 100)
+
+        return Ranges(
+            inflation=frac(self.inflation_range),
+            bank_rate_change_pp=tuple(self.bank_change_range),
+            vacancy_rate=frac(self.vacancy_range),
+            renovation_factor=frac(self.renovation_range),
+            running_cost_factor=frac(self.running_range),
+        )
+
+    def compute(self, *_events) -> None:
+        try:
+            result = rent_uncertainty(self.inputs.to_project(), self.ranges(), self.n_samples)
+        except ValueError as exc:
+            self.param.update(result=None, error=str(exc), stale=False)
+            return
+        self.param.update(result=result, error="", stale=False)
+
+    def kpi_items(self) -> list[Kpi]:
+        r = self.result
+        p10, p50, p90 = (r.rent_percentiles[q] for q in (10, 50, 90))
+        items = [
+            Kpi(
+                "Miete ohne Unsicherheit",
+                eur(r.base_rent, 2),
+                "Erforderliche Miete aus Modus 1, mit den Werten der Startseite.",
+                note="aus Modus 1",
+            ),
+            Kpi(
+                "Median",
+                eur(p50, 2),
+                "Die Hälfte der Varianten braucht weniger, die Hälfte mehr.",
+                note="pro Person und Monat",
+            ),
+            Kpi(
+                "Spanne 10–90 %",
+                f"{eur(p10)} – {eur(p90)}",
+                "80 % der Varianten brauchen eine Miete in diesem Bereich.",
+            ),
+            Kpi(
+                "Sichere Miete",
+                eur(p90, 2),
+                "Reicht in 90 % der Varianten. Der Abstand zur Miete ohne Unsicherheit ist "
+                "ein Puffer für ungünstige Entwicklungen.",
+                note=f"{eur(p90 - r.base_rent)} über Modus 1",
+                tone="warning" if p90 > r.base_rent else "good",
+            ),
+        ]
+        if r.failed:
+            items.append(
+                Kpi(
+                    "Varianten ohne Lösung",
+                    str(r.failed),
+                    "In diesen Varianten reicht keine Miete bis 5.000 € pro Person; sie fehlen "
+                    "in der Auswertung.",
+                    tone="critical",
+                )
+            )
+        return items
+
+    def chart_items(self) -> list[tuple[go.Figure, str, str]]:
+        r = self.result
+        return [
+            (
+                charts.rent_distribution(
+                    r.samples["required_rent"], r.base_rent, r.rent_percentiles[50], r.safe_rent
+                ),
+                UNCERTAINTY_HELP["rent_distribution"],
+                "count",
+            ),
+            (charts.headroom_band(r.headroom_band), UNCERTAINTY_HELP["headroom_band"], "eur"),
+            (charts.sensitivity(r.sensitivity), UNCERTAINTY_HELP["sensitivity"], "ratio"),
+        ]
+
+    @param.depends("result", "error", "stale")
+    def results(self) -> pn.viewable.Viewable:
+        if self.error:
+            return pn.pane.Alert(f"Keine Lösung: {self.error}", alert_type="danger")
+        if self.result is None:
+            return pn.pane.Alert(
+                "Spannen einstellen und auf „Berechnen“ klicken.", alert_type="info"
+            )
+        blocks = [chart_block(fig, text, fmt) for fig, text, fmt in self.chart_items()]
+        notice = (
+            [
+                pn.pane.Alert(
+                    "Annahmen wurden geändert. Die Ergebnisse unten sind veraltet; bitte neu "
+                    "berechnen.",
+                    alert_type="warning",
+                )
+            ]
+            if self.stale
+            else []
+        )
+        return pn.Column(*notice, kpi_grid(self.kpi_items()), *blocks, sizing_mode="stretch_width")
+
+    def view(self) -> pn.viewable.Viewable:
+        sliders = [
+            with_info(
+                pn.widgets.RangeSlider.from_param(
+                    self.param[name], step=0.5 if "change" not in name else 0.25
+                ),
+                RANGE_INFO[name],
+            )
+            for name in RANGE_INFO
+            if name != "n_samples"
+        ]
+        button = pn.widgets.Button(label="Berechnen", color="primary", sizing_mode="stretch_width")
+        button.on_click(self.compute)
+        levers = box(
+            "Spannen",
+            *sliders,
+            with_info(
+                pn.widgets.IntSlider.from_param(self.param.n_samples, step=50),
+                RANGE_INFO["n_samples"],
+            ),
+            button,
+            pn.pane.Markdown(
+                "*Wahrscheinlichster Wert jeweils von der Startseite.*",
+                styles={"font-size": "13px"},
+            ),
+            width=LEVER_WIDTH,
+        )
+        return pn.Row(
+            levers,
+            pn.Column(
+                _on_demand("So wird gerechnet", UNCERTAINTY_TEXT),
+                self.results,
+                sizing_mode="stretch_width",
+            ),
+            sizing_mode="stretch_width",
+        )
+
+
+def _default_text(inputs: Inputs, name: str) -> str:
+    parameter = inputs.param[name]
+    value = parameter.default
+    if isinstance(parameter, param.Selector):
+        names = getattr(parameter, "names", None) or {}
+        return next((k for k, v in names.items() if v == value), str(value))
+    if isinstance(value, float) and "(€" in parameter.label:
+        return eur(value)
+    if isinstance(value, float):
+        return f"{value:g}".replace(".", ",")
+    return str(value)
+
+
+def parameter_table(inputs: Inputs) -> str:
+    """Markdown table of every input with its default and explanation."""
+    rows = []
+    for section, names in {**SECTIONS, **ADVANCED_SECTIONS}.items():
+        for name in names:
+            label = inputs.param[name].label
+            info = INFO[name].replace("|", "/")
+            rows.append(f"| {section} | {label} | {_default_text(inputs, name)} | {info} |")
+    header = "| Bereich | Eingabe | Standard | Bedeutung |\n|---|---|---|---|\n"
+    return header + "\n".join(rows)
+
+
+def methodik_page(inputs: Inputs) -> pn.viewable.Viewable:
+    text = files("app").joinpath("methodik.md").read_text(encoding="utf-8")
+    return pn.Column(
+        pn.pane.Markdown(text, max_width=1000),
+        pn.pane.Markdown("## Eingaben und Standardwerte", max_width=1000),
+        pn.pane.Markdown(parameter_table(inputs), sizing_mode="stretch_width"),
+        _on_demand("Annahmen des Modells (A1–A9)", assumptions_table()),
+        sizing_mode="stretch_width",
+    )
+
+
 def start_page(inputs: Inputs) -> pn.viewable.Viewable:
     mode_tiles = [
         box(title, pn.pane.Markdown(question, margin=(0, 0)), width=START_BOX_WIDTH)
@@ -739,7 +1019,14 @@ def start_page(inputs: Inputs) -> pn.viewable.Viewable:
     )
 
 
-PAGE_NAMES = ["Start", "Modus 1: Miete", "Modus 2: Vorsorge", "Modus 3: Zielmiete"]
+PAGE_NAMES = [
+    "Start",
+    "Modus 1: Miete",
+    "Modus 2: Vorsorge",
+    "Modus 3: Zielmiete",
+    "Unsicherheit",
+    "Methodik",
+]
 # The template header carries the page navigation, so the tab bar itself is hidden.
 HIDDEN_TAB_BAR_CSS = ":host > .bk-header { display: none; }"
 
@@ -752,6 +1039,8 @@ def build_app() -> pn.viewable.Viewable:
         Mode1(inputs=inputs).view(),
         Mode2(inputs=inputs).view(),
         Mode3(inputs=inputs).view(),
+        UncertaintyPage(inputs=inputs).view(),
+        methodik_page(inputs),
     ]
     return pn.Tabs(*zip(PAGE_NAMES, pages, strict=True), sizing_mode="stretch_width", dynamic=True)
 
@@ -767,7 +1056,7 @@ def serve() -> pn.template.BaseTemplate:
         variant="outline",
         margin=(8, 20),
     )
-    nav.jslink(tabs, value="active", bidirectional=True)
+    nav.link(tabs, value="active", bidirectional=True)
     return pn.template.FastListTemplate(
         title=TITLE,
         header=[nav],

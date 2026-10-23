@@ -4,9 +4,11 @@
 - Env: `conda env create -f environment.yml` → env `wohnprojekt` (Python 3.12).
 - Entry points: `model.simulate(scenario, rent_per_person)`, `model.required_rent(scenario)`,
   `model.max_investment(...)`, `model.member.member_view(...)`,
+  `model.uncertainty.rent_uncertainty(ProjectInputs(), Ranges(), n)`,
   `model.presets.example_scenario()`, `model.presets.build_scenario(ProjectInputs())` (app inputs).
 - Commands (from repo root, env active): `pytest` (all, ~2 s), `pytest -m "not reference"`,
-  `ruff check . && ruff format --check .`.
+  `ruff check . && ruff format --check .`, `python scripts/build_site.py --out site`
+  (browser build; CI does the same and publishes to GitHub Pages).
 - Protected: `reference/Finanzplan_Wohnprojekte_Stiftung_trias.xlsx` (original template),
   `reference/trias_reference_case.xlsx` (regenerate only via `reference/fill_trias.ps1`).
 
