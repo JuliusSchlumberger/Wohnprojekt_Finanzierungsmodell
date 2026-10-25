@@ -9,6 +9,7 @@ from model.types import MemberType, Operations, Property, Rules, Scenario, Tranc
 
 Tenure = Literal["purchase", "leasehold"]
 SurplusUse = Literal["rent_reduction", "payout_15y", "next_project"]
+MemberLoanPayoff = Literal["liquidity", "bank", "direct_loans"]
 RentMode = Literal["indexed", "fixed"]
 
 BANK_RATE_CHANGE_STEP = 0.01
@@ -28,6 +29,10 @@ class ProjectInputs:
     value. Once no arrears are open, liquidity above reserve plus all
     outstanding direct and member loans goes to the A4 use. The first 3
     operating years carry `initial_vacancy_rate` instead of `vacancy_rate`.
+    `member_loan_payoff` decides how member loans are repaid when due: from
+    liquidity (with the arrears rule), or by a new bank loan (follow-up rate,
+    remaining bank term, at least 10 years) or new 10-year direct loans that
+    take up the full amount due at the end of the maturity year.
     `bank_rate_change` counts steps of `BANK_RATE_CHANGE_STEP` (the app offers -1, 0, +1)
     applied after the 10-year fixed-rate period.
     """
@@ -42,6 +47,7 @@ class ProjectInputs:
     member_loans: float = 400_000.0
     member_loan_rate: float = 0.05
     member_loan_term_years: int = 15
+    member_loan_payoff: MemberLoanPayoff = "liquidity"
     direct_loans_5y: float = 50_000.0
     direct_loan_rate_5y: float = 0.025
     direct_loans_10y: float = 150_000.0
@@ -164,10 +170,11 @@ def build_scenario(p: ProjectInputs) -> Scenario:
             residual=True,
         ),
     ]
+    refinancing = _member_loan_refinancing(p)
     return Scenario(
         property=prop,
         member_types=[MemberType(count=p.persons, equity_contribution=p.equity / p.persons)],
-        tranches=[tr for tr in subordinated if tr.amount] + senior,
+        tranches=[tr for tr in subordinated if tr.amount] + senior + refinancing,
         operations=Operations(
             inflation=p.inflation,
             maintenance_reserve_rate=p.maintenance_reserve_rate,
@@ -185,6 +192,38 @@ def build_scenario(p: ProjectInputs) -> Scenario:
             max_arrears_years=p.max_arrears_years,
         ),
     )
+
+
+def _member_loan_refinancing(p: ProjectInputs) -> list[Tranche]:
+    """New loan that pays off the member loans when they fall due, if chosen."""
+    if p.member_loan_payoff == "liquidity" or not p.member_loans:
+        return []
+    due = p.member_loans * (1 + p.member_loan_rate) ** p.member_loan_term_years
+    timing = {"drawdown_year": p.member_loan_term_years, "year_end_drawdown": True}
+    if p.member_loan_payoff == "bank":
+        follow_up = max(p.bank_rate + p.bank_rate_change * BANK_RATE_CHANGE_STEP, 0.0)
+        return [
+            Tranche(
+                name="bank_refinance",
+                kind="bank_loan",
+                amount=due,
+                interest_rate=follow_up,
+                repayment=p.bank_repayment,
+                term_years=max(p.bank_term_years - p.member_loan_term_years, 10),
+                **timing,
+            )
+        ]
+    return [
+        Tranche(
+            name="direct_loans_refinance",
+            kind="direct_loan",
+            amount=due,
+            interest_rate=p.direct_loan_rate_10y,
+            repayment="bullet",
+            term_years=10,
+            **timing,
+        )
+    ]
 
 
 def property_for_investment(total_investment: float, tenure: Tenure = "purchase") -> Property:

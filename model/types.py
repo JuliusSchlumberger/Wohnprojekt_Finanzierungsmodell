@@ -54,7 +54,10 @@ class Property:
 class Tranche:
     """One financing source.
 
-    `drawdown_year` 0 means paid in before the first operating year. A loan
+    `drawdown_year` 0 means paid in before the first operating year; with
+    `year_end_drawdown` the amount comes in at the end of `drawdown_year` and
+    service starts the following year. Later drawdowns are not part of the
+    opening financing. A loan
     with `residual=True` takes whatever amount closes the financing gap
     (investment plus initial reserve minus all other sources); its `amount`
     is ignored. With `initial_repayment_rate` set, an annuity loan's term is
@@ -73,6 +76,7 @@ class Tranche:
     fixed_rate_years: int | None = None
     follow_up_rate: float | None = None
     drawdown_year: int = 0
+    year_end_drawdown: bool = False
     interest_mode: InterestMode = "paid"
     churn_rate: float = 0.0
     replacement_rate: float = 1.0

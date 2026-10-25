@@ -44,6 +44,7 @@ class UncertaintyResult:
     base_rent: float
     safe_rent: float
     headroom_band: pd.DataFrame
+    headroom_band_nominal: pd.DataFrame
     sensitivity: pd.Series
     failed: int = 0
 
@@ -84,9 +85,20 @@ def latin_hypercube(p: ProjectInputs, ranges: Ranges, n: int, seed: int = 42) ->
 
 
 def _apply(p: ProjectInputs, draw: pd.Series) -> ProjectInputs:
+    """Variant for one draw; interest rates keep their spread above inflation."""
+    shift = float(draw["inflation"]) - p.inflation
+
+    def shifted(rate: float) -> float:
+        return max(rate + shift, 0.0)
+
     return replace(
         p,
         inflation=float(draw["inflation"]),
+        bank_rate=shifted(p.bank_rate),
+        subsidy_rate=shifted(p.subsidy_rate),
+        direct_loan_rate_5y=shifted(p.direct_loan_rate_5y),
+        direct_loan_rate_10y=shifted(p.direct_loan_rate_10y),
+        member_loan_rate=shifted(p.member_loan_rate),
         bank_rate_change=float(draw["bank_rate_change_pp"]) / (100 * BANK_RATE_CHANGE_STEP),
         vacancy_rate=float(draw["vacancy_rate"]),
         renovation_cost=p.renovation_cost * float(draw["renovation_factor"]),
@@ -126,6 +138,12 @@ def _rent_near(scenario, guess: float) -> float:
     return hi
 
 
+def _band(paths: pd.DataFrame, start_year: int) -> pd.DataFrame:
+    band = pd.DataFrame({f"p{q}": paths.quantile(q / 100, axis=1) for q in PERCENTILES})
+    band.insert(0, "year", start_year + band.index)
+    return band
+
+
 def rent_uncertainty(
     p: ProjectInputs, ranges: Ranges, n: int = 300, seed: int = 42
 ) -> UncertaintyResult:
@@ -134,7 +152,9 @@ def rent_uncertainty(
     The safe rent is the 90th percentile of the sampled required rents: it is
     enough in 90 % of the variants. Every variant is simulated at that rent;
     the band is liquidity minus required reserve, in purchasing power of
-    year 1, so values below zero mean the reserve is undercut. Sensitivity is
+    year 1 (`headroom_band`) and in nominal euros (`headroom_band_nominal`),
+    so values below zero mean the reserve is undercut. Interest rates move
+    with the sampled inflation, keeping their spread. Sensitivity is
     the Spearman rank correlation of each input with the required rent.
     """
     base_scenario = build_scenario(p)
@@ -154,13 +174,13 @@ def rent_uncertainty(
     percentiles = {q: float(np.percentile(valid["required_rent"], q)) for q in PERCENTILES}
     safe_rent = percentiles[90]
 
-    headroom = {}
+    real, nominal = {}, {}
     for i in valid.index:
         raw = _run(scenarios[i], safe_rent)
-        headroom[i] = raw["headroom"] / (raw["cost_index"] / raw["cost_index"][1])
-    paths = pd.DataFrame(headroom).loc[1:]
-    band = pd.DataFrame({f"p{q}": paths.quantile(q / 100, axis=1) for q in PERCENTILES})
-    band.insert(0, "year", base_scenario.property.start_year + band.index)
+        nominal[i] = raw["headroom"]
+        real[i] = raw["headroom"] / (raw["cost_index"] / raw["cost_index"][1])
+    years = base_scenario.property.start_year
+    band, band_nominal = (_band(pd.DataFrame(paths).loc[1:], years) for paths in (real, nominal))
 
     ranks = valid.rank()
     sensitivity = (
@@ -175,6 +195,7 @@ def rent_uncertainty(
         base_rent=base_rent,
         safe_rent=safe_rent,
         headroom_band=band,
+        headroom_band_nominal=band_nominal,
         sensitivity=sensitivity,
         failed=int(draws["required_rent"].isna().sum()),
     )

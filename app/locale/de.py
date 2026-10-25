@@ -92,13 +92,9 @@ Kennzahl erklärt, was dahintersteckt.
     "label.persons": "Personenzahl",
     "label.equity_per_person": "Einlage pro Person (€)",
     "label.member_loan_per_person": "Mitgliederdarlehen pro Person (€)",
-    "label.member_loan_rate_pct": "Zins Mitgliederdarlehen (%)",
     "label.direct_loans_5y": "Direktkredite 5 Jahre (€)",
-    "label.direct_loan_rate_5y_pct": "Zins 5 Jahre (%)",
     "label.direct_loans_10y": "Direktkredite 10 Jahre (€)",
-    "label.direct_loan_rate_10y_pct": "Zins 10 Jahre (%)",
     "label.subsidy": "Förderdarlehen (€)",
-    "label.bank_rate_pct": "Bankzins (%)",
     "label.bank_repayment": "Tilgungsform Bank",
     "label.bank_term_years": "Laufzeit Bank (Jahre)",
     "label.bank_rate_change": "Bankzins nach 10 Jahren",
@@ -116,7 +112,6 @@ Kennzahl erklärt, was dahintersteckt.
     "label.max_arrears_years": "Rückstand höchstens (Jahre)",
     "label.ancillary_cost_pct": "Kaufnebenkosten (%)",
     "label.leasehold_rate_pct": "Erbbauzins (%)",
-    "label.subsidy_rate_pct": "Zins Förderdarlehen (%)",
     "label.subsidy_term_years": "Laufzeit Förderdarlehen (Jahre)",
     "label.member_loan_term_years": "Laufzeit Mitgliederdarlehen (Jahre)",
     "label.member_type": "Mitgliedertyp",
@@ -125,7 +120,6 @@ Kennzahl erklärt, was dahintersteckt.
     "label.entry_year": "Einzug (Jahr)",
     "label.exit_year": "Auszug (Jahr)",
     "label.market_rent": "Marktmiete pro Person (€/Monat)",
-    "label.alt_return_pct": "Alternativrendite (%)",
     "label.inflation_range": "Inflation (%)",
     "label.bank_change_range": "Bankzins nach 10 J. (± Pp.)",
     "label.vacancy_range": "Mietausfall (%)",
@@ -175,27 +169,19 @@ Kennzahl erklärt, was dahintersteckt.
         "unter „Erweitert“) wird "
         "alles samt Zinseszins auf einmal zurückgezahlt."
     ),
-    "info.member_loan_rate_pct": "Zins auf Mitgliederdarlehen, wird dem Darlehen gutgeschrieben.",
     "info.direct_loans_5y": (
         "Nachrangige Privatdarlehen von Unterstützer*innen über 5 Jahre. Zinsen werden "
         "jährlich ausgezahlt, der Betrag nach 5 Jahren auf einmal zurück. Banken werten "
         "Direktkredite wegen des Nachrangs meist als eigenkapitalähnlich."
     ),
-    "info.direct_loan_rate_5y_pct": "Zins auf 5-Jahres-Direktkredite, jährlich ausgezahlt.",
     "info.direct_loans_10y": (
         "Wie oben, aber über 10 Jahre. Längere Laufzeiten haben meist einen höheren Zins."
     ),
-    "info.direct_loan_rate_10y_pct": "Zins auf 10-Jahres-Direktkredite, jährlich ausgezahlt.",
     "info.subsidy": (
         "Förderdarlehen (z. B. KfW oder Landesförderbank) als Annuität; Zins und Laufzeit "
         "unter „Erweitert“ (Standard 1,5 % über 30 Jahre). Nur für Sanierungskosten nutzbar, "
         "deshalb höchstens so hoch wie diese. "
         "Zählt nicht als eigenkapitalähnlich."
-    ),
-    "info.bank_rate_pct": (
-        "Sollzins des Bankdarlehens für die ersten 10 Jahre. Er hängt vom Marktzins ab, "
-        "nicht direkt von der Inflation: oft lag er 1 bis 3 Prozentpunkte darüber, "
-        "2015 bis 2021 aber nahe an oder unter der Inflation."
     ),
     "info.bank_repayment": (
         "Annuität: gleichbleibende Rate aus Zins und Tilgung, anfangs viel Zins. "
@@ -205,10 +191,6 @@ Kennzahl erklärt, was dahintersteckt.
     "info.bank_rate_change": (
         "Nach 10 Jahren endet die Zinsbindung. Für die Anschlussfinanzierung wird der Zins "
         "um 1 Prozentpunkt gesenkt, beibehalten oder erhöht."
-    ),
-    "info.inflation_pct": (
-        "Jährliche Inflation. Miete, Betriebskosten und Erbbauzins steigen damit; Zins und "
-        "Tilgung bleiben nominal fest. Deshalb ist meist das erste Jahr am engsten."
     ),
     "info.surplus_use": (
         "Gilt ab dem Jahr, in dem Bank- und Förderdarlehen getilgt sind (A4). Mietsenkung: "
@@ -261,7 +243,6 @@ Kennzahl erklärt, was dahintersteckt.
         "einmal zurückgezahlt. Längere Laufzeiten schieben die große Rückzahlung nach "
         "hinten, lassen aber mehr Zinseszins auflaufen."
     ),
-    "info.subsidy_rate_pct": "Zins der Förderdarlehen, fest über die ganze Laufzeit.",
     "info.subsidy_term_years": "Laufzeit der Förderdarlehen; sie werden als Annuität getilgt.",
     "info.maintenance_reserve_pct": (
         "So viel vom Wiederherstellungswert fließt jedes Jahr in die "
@@ -288,11 +269,6 @@ Kennzahl erklärt, was dahintersteckt.
     "info.market_rent": (
         "Was eine vergleichbare Wohnung bzw. ein Zimmer am Markt pro Person und Monat "
         "kostet, in derselben Einheit wie die Projektmiete. Steigt mit der Inflation."
-    ),
-    "info.alt_return_pct": (
-        "Nominale Rendite pro Jahr, wenn das Geld statt im Projekt anderswo angelegt würde "
-        "(z. B. breit gestreuter Fonds). Mit derselben Rendite werden auch alle "
-        "Ersparnisse des Mitglieds angelegt."
     ),
     "info.target_rent": (
         "Die Miete, die eine Person im ersten Jahr zahlen will oder kann, pro Monat. "
@@ -758,4 +734,78 @@ Wie stark jede unsichere Annahme mit der erforderlichen Miete zusammenhängt
     "chart.uncertain.member_loan_term_years": "Laufzeit Mitgliederdarlehen",
     "chart.uncertain.member_loan_factor": "Umfang Mitgliederdarlehen",
     "chart.uncertain.direct_loans_10y_factor": "Umfang Direktkredite 10 Jahre",
+    # Rates relative to inflation, member loan payoff, nominal display
+    "label.member_loan_spread_pp": "Zins Mitgliederdarlehen (Pp. über Inflation)",
+    "label.direct_loan_spread_5y_pp": "Zins 5 Jahre (Pp. über Inflation)",
+    "label.direct_loan_spread_10y_pp": "Zins 10 Jahre (Pp. über Inflation)",
+    "label.bank_spread_pp": "Bankzins (Pp. über Inflation)",
+    "label.subsidy_spread_pp": "Zins Förderdarlehen (Pp. über Inflation)",
+    "label.alt_return_spread_pp": "Alternativrendite (Pp. über Inflation)",
+    "info.member_loan_spread_pp": (
+        "Zins auf Mitgliederdarlehen in Prozentpunkten über der Inflation; er wird dem "
+        "Darlehen gutgeschrieben. Beispiel: 3 bei 2 % Inflation ergibt 5 % Zins."
+    ),
+    "info.direct_loan_spread_5y_pp": (
+        "Zins auf 5-Jahres-Direktkredite in Prozentpunkten über der Inflation, jährlich "
+        "ausgezahlt. Negative Werte heißen: Zins unter der Inflation."
+    ),
+    "info.direct_loan_spread_10y_pp": (
+        "Zins auf 10-Jahres-Direktkredite in Prozentpunkten über der Inflation, jährlich "
+        "ausgezahlt."
+    ),
+    "info.bank_spread_pp": (
+        "Sollzins des Bankdarlehens für die ersten 10 Jahre, in Prozentpunkten über der "
+        "Inflation. Er hängt vom Marktzins ab, nicht direkt von der Inflation: oft lag er"
+        " 1 bis 3 Prozentpunkte darüber, 2015 bis 2021 aber nahe an oder unter der "
+        "Inflation. Der Zins steht bei Abschluss fest und ändert sich danach nicht mit "
+        "der Inflation."
+    ),
+    "info.subsidy_spread_pp": (
+        "Zins der Förderdarlehen in Prozentpunkten über der Inflation, fest über die "
+        "ganze Laufzeit. Förderzinsen liegen oft unter der Inflation (negativer Wert)."
+    ),
+    "info.alt_return_spread_pp": (
+        "Rendite pro Jahr in Prozentpunkten über der Inflation, wenn das Geld statt im "
+        "Projekt anderswo angelegt würde (z. B. breit gestreuter Fonds). Mit derselben "
+        "Rendite werden auch alle Ersparnisse des Mitglieds angelegt."
+    ),
+    "info.inflation_pct": (
+        "Jährliche Inflation. Miete, Betriebskosten und Erbbauzins steigen damit. Alle "
+        "Zinsen werden relativ zur Inflation eingegeben und ändern sich mit ihr; ist ein "
+        "Darlehen abgeschlossen, bleiben Zins und Tilgung nominal fest. Deshalb ist meist"
+        " das erste Jahr am engsten."
+    ),
+    "summary.rates": (
+        "Nominal bei {inflation} Inflation: Bank {bank} (nach 10 J. {follow_up}), "
+        "Förderung {subsidy}, Direktkredite {dk5} / {dk10}, Mitgliederdarlehen {member}"
+    ),
+    "label.member_loan_payoff": "Rückzahlung der Mitgliederdarlehen",
+    "info.member_loan_payoff": (
+        "Woher das Geld kommt, wenn die Mitgliederdarlehen samt Zinsen fällig werden. Aus"
+        " Liquidität: das Konto zahlt, was ohne Unterschreiten der Reserve geht, der Rest"
+        " wird als Rückstand nachgezahlt. Neues Bankdarlehen: die ganze Summe wird zum "
+        "Anschlusszins der Bank finanziert, als Annuität bzw. Ratenkredit über die "
+        "Restlaufzeit des Bankdarlehens, mindestens 10 Jahre. Neue Direktkredite: die "
+        "ganze Summe wird mit 10-Jahres-Direktkrediten zum 10-Jahres-Zins finanziert, die"
+        " nach 10 Jahren fällig werden."
+    ),
+    "option.member_loan_payoff.liquidity": "Aus Liquidität",
+    "option.member_loan_payoff.bank": "Neues Bankdarlehen",
+    "option.member_loan_payoff.direct_loans": "Neue Direktkredite 10 J.",
+    "label.display": "Grafiken",
+    "info.display": (
+        "Inflationsbereinigt: alle Beträge in Kaufkraft von Jahr 1, so lassen sich Jahre "
+        "direkt vergleichen. Nominal: die tatsächlichen Euro-Beträge des jeweiligen "
+        "Jahres; Miete und Kosten wachsen dann sichtbar mit der Inflation."
+    ),
+    "option.display.real": "inflationsbereinigt",
+    "option.display.nominal": "nominal",
+    "chart.nominal_subtitle": "nominal, tatsächliche Euro-Beträge des jeweiligen Jahres",
+    "help.nominal_note": (
+        "*Die Grafik zeigt gerade nominale Beträge; die Erklärung unten bezieht sich auf "
+        "die inflationsbereinigte Darstellung.*\n"
+    ),
+    "chart.tranche.bank_refinance": "Bankdarlehen für Mitgliederdarlehen",
+    "chart.tranche.direct_loans_refinance": "Direktkredite für Mitgliederdarlehen",
+    "chart.costs.refinancing": "Neues Darlehen für Mitgliederdarlehen (Zufluss)",
 }

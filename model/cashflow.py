@@ -81,6 +81,10 @@ def tranche_schedule(tr: Tranche, horizon: int) -> TrancheSchedule:
     n_amort = amortization_years(tr, principal) if tr.repayment in ("annuity", "linear") else 0.0
 
     first = max(d, 1)
+    if tr.year_end_drawdown:
+        s.inflow[d] += tr.amount
+        s.balance[d] = tr.amount
+        first = d + 1
     for t in range(first, n):
         b = s.balance[t - 1]
         if t == d:
@@ -223,7 +227,7 @@ def financed_tranches(scenario: Scenario, start_liquidity: float) -> list[Tranch
     tranches = scenario.tranches + scenario.member_tranches()
     need = scenario.property.total_investment + start_liquidity
     residual = [tr for tr in tranches if tr.residual]
-    fixed = sum(tr.amount for tr in tranches if not tr.residual)
+    fixed = sum(tr.amount for tr in tranches if not tr.residual and tr.drawdown_year == 0)
     if len(residual) > 1:
         raise ValueError("at most one residual tranche allowed")
     if residual:
@@ -240,7 +244,7 @@ def financed_tranches(scenario: Scenario, start_liquidity: float) -> list[Tranch
 
 
 def capital_structure(scenario: Scenario, rent_per_person: float) -> dict[str, float]:
-    """Financed amount per tranche kind and the equity-like share of total investment.
+    """Opening amount per tranche kind and the equity-like share of total investment.
 
     Equity-like capital is member equity plus subordinated member and direct
     loans, which banks usually count towards the borrower's own funds.
@@ -248,7 +252,8 @@ def capital_structure(scenario: Scenario, rent_per_person: float) -> dict[str, f
     tranches = financed_tranches(scenario, opening_liquidity(scenario, rent_per_person))
     amounts = dict.fromkeys(get_args(TrancheKind), 0.0)
     for tr in tranches:
-        amounts[tr.kind] += float(tr.amount)
+        if tr.drawdown_year == 0:
+            amounts[tr.kind] += float(tr.amount)
     equity_like = sum(amounts[kind] for kind in EQUITY_LIKE_KINDS)
     return {
         **amounts,
@@ -372,6 +377,18 @@ def _run(scenario: Scenario, rent_per_person: float) -> dict[str, np.ndarray | f
         weighted = sum((s.repayment * rates[n] for n, s in sub.items()), start=zeros)
         due_rate = np.divide(weighted, due, out=np.zeros(T + 1), where=due > 0)
         outstanding = sum((s.balance for s in sub.values()), start=zeros)
+        # Member loans that a later year-end drawdown pays off need no cash held for them.
+        years = np.arange(T + 1)
+        refinanced = sum(
+            (
+                np.where(years < tr.drawdown_year, tr.amount, 0.0)
+                for tr in scenario.tranches
+                if tr.year_end_drawdown
+            ),
+            start=zeros,
+        )
+        member = sum((s.balance for n, s in sub.items() if kinds[n] == "member_loan"), start=zeros)
+        outstanding = outstanding - np.minimum(refinanced, member)
         settled = _settle(rules, net + due, start_liq, reserve_required, due, due_rate, outstanding)
         liquidity = settled.pop("liquidity")
         repayment = repayment - due + settled["paid_on_time"] + settled["arrears_paid"]

@@ -30,21 +30,22 @@ MODE1_LEVERS = [
     "renovation_cost",
     "equity_per_person",
     "member_loan_per_person",
+    "member_loan_payoff",
     "direct_loans_5y",
     "direct_loans_10y",
     "subsidy",
-    "bank_rate_pct",
+    "bank_spread_pp",
     "inflation_pct",
 ]
 MODE2_LEVERS = [
     "member_type",
     "member_equity",
     "member_loan_personal",
-    "member_loan_rate_pct",
+    "member_loan_spread_pp",
     "entry_year",
     "exit_year",
     "market_rent",
-    "alt_return_pct",
+    "alt_return_spread_pp",
     "inflation_pct",
     "surplus_use",
 ]
@@ -55,7 +56,7 @@ MODE3_LEVERS = [
     "direct_loans_5y",
     "direct_loans_10y",
     "subsidy",
-    "bank_rate_pct",
+    "bank_spread_pp",
     "inflation_pct",
     "min_equity_like_pct",
 ]
@@ -120,6 +121,15 @@ class _Page(param.Parameterized):
     def tr(self) -> Translator:
         return self.inputs.tr
 
+    @property
+    def real(self) -> bool:
+        return self.inputs.display == "real"
+
+    def _help(self, key: str) -> str:
+        """Help text for a chart; flagged when the chart shows nominal amounts."""
+        text = self.tr(key)
+        return text if self.real else self.tr("help.nominal_note") + text
+
     def _update(self, *_events) -> None:
         raise NotImplementedError
 
@@ -156,7 +166,7 @@ class _Page(param.Parameterized):
             return pn.pane.Alert(self.tr("ui.no_solution", error=self.error), alert_type="danger")
         return pn.Column(kpi_grid(self.kpi_items()), *self.alerts(), sizing_mode="stretch_width")
 
-    @param.depends("result")
+    @param.depends("result", "inputs.display")
     def figures(self) -> pn.viewable.Viewable:
         if self.result is None:
             return pn.Spacer(height=0)
@@ -177,6 +187,7 @@ class _Page(param.Parameterized):
             pn.Column(
                 self.kpis,
                 _on_demand(tr("ui.how_computed"), tr(self.method_key)),
+                self.inputs.widget("display"),
                 self.figures,
                 sizing_mode="stretch_width",
             ),
@@ -315,12 +326,18 @@ class Mode1(_Page):
     def chart_items(self) -> list[tuple[go.Figure, str]]:
         tr = self.tr
         items = [
-            (charts.annual_costs(self.result, self.scenario, tr), tr("help.annual_costs")),
-            (charts.liquidity(self.result, tr), tr("help.liquidity")),
-            (charts.debt_balances(self.result, self.scenario, tr), tr("help.debt_balances")),
+            (
+                charts.annual_costs(self.result, self.scenario, tr, self.real),
+                self._help("help.annual_costs"),
+            ),
+            (charts.liquidity(self.result, tr, self.real), self._help("help.liquidity")),
+            (
+                charts.debt_balances(self.result, self.scenario, tr, self.real),
+                self._help("help.debt_balances"),
+            ),
         ]
         if self.result.table["arrears_new"].any():
-            items.append((charts.arrears(self.result, tr), tr("help.arrears")))
+            items.append((charts.arrears(self.result, tr, self.real), self._help("help.arrears")))
         return items
 
 
@@ -406,7 +423,7 @@ class Mode2(_Page):
     def kpis(self) -> pn.viewable.Viewable:
         return super().kpis()
 
-    @param.depends("view_table")
+    @param.depends("view_table", "inputs.display")
     def figures(self) -> pn.viewable.Viewable:
         return super().figures()
 
@@ -414,7 +431,8 @@ class Mode2(_Page):
         if self.view_table is None:
             return []
         tr = self.tr
-        return [(charts.member_wealth(self.view_table, tr), tr("help.member_wealth"))]
+        figure = charts.member_wealth(self.view_table, tr, self.real)
+        return [(figure, self._help("help.member_wealth"))]
 
 
 class Mode3(_Page):
@@ -526,7 +544,7 @@ class Mode3(_Page):
         )
         return [
             (curve, tr("help.investment_curve")),
-            (charts.liquidity(self.result, tr), tr("help.liquidity_mode3")),
+            (charts.liquidity(self.result, tr, self.real), self._help("help.liquidity_mode3")),
         ]
 
 
@@ -621,16 +639,21 @@ class UncertaintyPage(param.Parameterized):
 
     def chart_items(self) -> list[tuple[go.Figure, str, str]]:
         tr, r = self.tr, self.result
+        real = self.inputs.display == "real"
+        band = r.headroom_band if real else r.headroom_band_nominal
+        help_band = tr("help.headroom_band")
+        if not real:
+            help_band = tr("help.nominal_note") + help_band
         distribution = charts.rent_distribution(
             r.samples["required_rent"], r.base_rent, r.rent_percentiles[50], r.safe_rent, tr
         )
         return [
             (distribution, tr("help.rent_distribution"), "count"),
-            (charts.headroom_band(r.headroom_band, tr), tr("help.headroom_band"), "eur"),
+            (charts.headroom_band(band, tr, real), help_band, "eur"),
             (charts.sensitivity(r.sensitivity, tr), tr("help.sensitivity"), "ratio"),
         ]
 
-    @param.depends("result", "error", "stale")
+    @param.depends("result", "error", "stale", "inputs.display")
     def results(self) -> pn.viewable.Viewable:
         tr = self.tr
         if self.error:
@@ -671,6 +694,7 @@ class UncertaintyPage(param.Parameterized):
             levers,
             pn.Column(
                 _on_demand(tr("ui.how_computed"), tr("method.uncertainty")),
+                self.inputs.widget("display"),
                 self.results,
                 sizing_mode="stretch_width",
             ),

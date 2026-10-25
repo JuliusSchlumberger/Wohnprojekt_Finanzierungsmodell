@@ -7,6 +7,7 @@ from app import charts  # noqa: E402
 from app.main import Mode1, Mode2, Mode3, build_app  # noqa: E402
 from app.widgets import Inputs  # noqa: E402
 from model import required_rent  # noqa: E402
+from model.member import MemberInputs  # noqa: E402
 from model.presets import ProjectInputs, build_scenario  # noqa: E402
 
 
@@ -19,7 +20,7 @@ def test_default_inputs_match_project_defaults():
 def test_rent_rises_when_bank_rate_slider_moves_up():
     mode1 = Mode1()
     before = mode1.result.metrics["rent_per_person"]
-    mode1.inputs.bank_rate_pct = 7.5
+    mode1.inputs.bank_spread_pp = 5.5
     assert mode1.result.metrics["rent_per_person"] > before
 
 
@@ -229,3 +230,40 @@ def test_methodology_page_lists_every_input_with_its_default():
     labels = [inputs.param[n].label for n in inputs.input_names()]
     assert all(label in table for label in labels)
     assert methodik_page(inputs).objects[0].object.startswith("# Methodik")
+
+
+def test_rates_follow_inflation_at_fixed_spreads():
+    inputs = Inputs()
+    before = inputs.to_project()
+    inputs.inflation_pct += 1.0
+    after = inputs.to_project()
+    for rate in ("bank_rate", "subsidy_rate", "member_loan_rate", "direct_loan_rate_10y"):
+        assert getattr(after, rate) == pytest.approx(getattr(before, rate) + 0.01)
+    assert inputs.to_member().alt_return == pytest.approx(MemberInputs().alt_return + 0.01)
+
+
+def test_negative_real_rate_is_floored_at_zero_nominal():
+    inputs = Inputs()
+    inputs.param.update(inflation_pct=1.0, subsidy_spread_pp=-3.0)
+    assert inputs.to_project().subsidy_rate == 0.0
+
+
+def test_display_toggle_changes_charts_but_not_results():
+    mode1 = Mode1()
+    rent = mode1.result.metrics["rent_per_person"]
+    real = charts.figure_table(mode1.chart_items()[1][0])
+    mode1.inputs.display = "nominal"
+    assert mode1.result.metrics["rent_per_person"] == rent
+    nominal = charts.figure_table(mode1.chart_items()[1][0])
+    assert nominal.iloc[0, 1] == pytest.approx(real.iloc[0, 1])
+    assert nominal.iloc[-1, 1] > real.iloc[-1, 1]
+    assert mode1.chart_items()[1][1].startswith("*")
+
+
+def test_refinancing_member_loans_shows_inflow_bar_and_keeps_repayment_positive():
+    mode1 = Mode1()
+    mode1.inputs.member_loan_payoff = "bank"
+    fig = mode1.chart_items()[0][0]
+    bars = {trace.name: np.asarray(trace.y) for trace in fig.data if trace.type == "bar"}
+    assert bars[charts.GERMAN("chart.costs.refinancing")].min() < 0
+    assert bars[charts.GERMAN("chart.costs.senior_repayment")].min() >= -1e-6

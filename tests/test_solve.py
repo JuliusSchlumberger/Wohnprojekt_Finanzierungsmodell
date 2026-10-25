@@ -195,3 +195,33 @@ def test_member_loan_term_moves_the_lump_repayment():
         ml = simulate(s, 900.0).tranches["member_loans"]
         assert int(ml["repayment"].idxmax()) == term
         assert ml["repayment"].max() == pytest.approx(400_000 * 1.05**term)
+
+
+@pytest.mark.parametrize("payoff", ["bank", "direct_loans"])
+def test_refinancing_pays_the_full_member_loan_due_at_year_end(payoff):
+    p = ProjectInputs(member_loan_payoff=payoff)
+    res = simulate(build_scenario(p), 950.0)
+    (name,) = [n for n in res.tranches if n.endswith("_refinance")]
+    refi, ml = res.tranches[name], res.tranches["member_loans"]
+    term = p.member_loan_term_years
+    assert refi["inflow"].loc[term] == pytest.approx(ml["repayment"].loc[term])
+    assert refi["interest"].loc[term] == 0
+    assert refi["interest"].loc[term + 1] > 0
+
+
+def test_refinancing_is_not_part_of_the_opening_financing():
+    from model.cashflow import capital_structure
+
+    plain = capital_structure(build_scenario(ProjectInputs()), 900.0)
+    refinanced = capital_structure(build_scenario(ProjectInputs(member_loan_payoff="bank")), 900.0)
+    assert refinanced == plain
+
+
+def test_refinanced_member_loans_release_surplus_instead_of_hoarding_cash():
+    p = ProjectInputs()
+    hoarded = {}
+    for payoff in ("liquidity", "bank"):
+        scenario = build_scenario(replace(p, member_loan_payoff=payoff))
+        table = simulate(scenario, required_rent(scenario)).table
+        hoarded[payoff] = table.loc[1 : p.member_loan_term_years - 1, "liquidity"].max()
+    assert hoarded["bank"] < hoarded["liquidity"]

@@ -18,7 +18,8 @@ from model import Result, Scenario
 from model.cashflow import SENIOR_KINDS
 
 GERMAN = Translator("de")
-NAMED_TRANCHES = ("direct_loans_5y", "direct_loans_10y")
+REFINANCE_TRANCHES = ("bank_refinance", "direct_loans_refinance")
+NAMED_TRANCHES = ("direct_loans_5y", "direct_loans_10y", *REFINANCE_TRANCHES)
 SUBORDINATED_KINDS = ("member_loan", "direct_loan")
 
 # Categorical slots in validated order (dataviz reference palette, light mode);
@@ -38,6 +39,8 @@ TRANCHE_COLORS = {
     "direct_loans": SERIES[2],
     "direct_loans_10y": SERIES[3],
     "member_loans": SERIES[4],
+    "bank_refinance": SERIES[5],
+    "direct_loans_refinance": SERIES[5],
 }
 UNCERTAIN_INPUTS = (
     "inflation",
@@ -51,13 +54,15 @@ UNCERTAIN_INPUTS = (
 )
 
 
-def _deflator(result: Result) -> pd.Series:
+def _deflator(result: Result, real: bool = True) -> pd.Series:
+    """Divisor that turns nominal amounts into the shown unit (1 when nominal)."""
     index = result.table["cost_index"]
-    return index / index.loc[1]
+    return index / index.loc[1] if real else index * 0 + 1.0
 
 
-def _real_title(title: str, year: int, tr: Translator) -> str:
-    return f"{title}<br><sup>{tr('chart.real_subtitle', year=year)}</sup>"
+def _title(title: str, year: int, tr: Translator, real: bool = True) -> str:
+    subtitle = tr("chart.real_subtitle" if real else "chart.nominal_subtitle", year=year)
+    return f"{title}<br><sup>{subtitle}</sup>"
 
 
 def subordinated_debt_real(result: Result, scenario: Scenario) -> pd.Series:
@@ -151,12 +156,15 @@ def _accrued_interest_due(result: Result, kinds: dict[str, str]) -> pd.Series:
     return content
 
 
-def annual_costs(result: Result, scenario: Scenario, tr: Translator = GERMAN) -> go.Figure:
+def annual_costs(
+    result: Result, scenario: Scenario, tr: Translator = GERMAN, real: bool = True
+) -> go.Figure:
     """Stacked yearly cash outflows with rent income as a line.
 
     Interest is split by lender; member-loan interest shows when it is paid
     out with the loan. Direct and member loan repayments are split into the
-    part paid on the due date and later payments of arrears.
+    part paid on the due date and later payments of arrears. A new loan that
+    pays off the member loans shows as a negative bar in its drawdown year.
     """
     tab = result.table
     kinds = _kinds(scenario)
@@ -164,8 +172,16 @@ def annual_costs(result: Result, scenario: Scenario, tr: Translator = GERMAN) ->
     on_time_share = (tab["sub_paid_on_time"] / due).where(due > 0, 0.0)
     member_interest = on_time_share * _accrued_interest_due(result, kinds)
     sub_principal = tab["sub_paid_on_time"] - member_interest
+    refinancing = sum(
+        (result.tranches[name]["inflow"] for name in REFINANCE_TRANCHES if name in result.tranches),
+        start=0.0 * due,
+    )
     senior_repayment = (
-        tab["repayment"] - tab["loan_inflow"] - tab["sub_paid_on_time"] - tab["arrears_paid"]
+        tab["repayment"]
+        - tab["loan_inflow"]
+        + refinancing
+        - tab["sub_paid_on_time"]
+        - tab["arrears_paid"]
     )
     series = [
         ("operating", tab["operating"], NEUTRAL),
@@ -185,10 +201,11 @@ def annual_costs(result: Result, scenario: Scenario, tr: Translator = GERMAN) ->
         ("arrears", tab["arrears_paid"] + tab["arrears_interest"], SERIES[5]),
         ("rebate", tab["rent_rebate"], SERIES[6]),
         ("payout", tab["payout"], SERIES[6]),
+        ("refinancing", -refinancing, SERIES[5]),
         ("transfer", tab["transfer_out"], SERIES[6]),
     ]
     years = tab["year"].loc[1:]
-    deflator = _deflator(result).loc[1:]
+    deflator = _deflator(result, real).loc[1:]
     fig = go.Figure()
     for key, values, color in series:
         values = values.loc[1:]
@@ -203,15 +220,15 @@ def annual_costs(result: Result, scenario: Scenario, tr: Translator = GERMAN) ->
         mode="lines",
         line_color=INK,
     )
-    fig.update_layout(barmode="stack")
-    title = _real_title(tr("chart.costs.title"), int(tab["year"].loc[1]), tr)
+    fig.update_layout(barmode="relative")
+    title = _title(tr("chart.costs.title"), int(tab["year"].loc[1]), tr, real)
     return _layout(fig, title, tr("chart.costs.y"), tr)
 
 
-def arrears(result: Result, tr: Translator = GERMAN) -> go.Figure:
+def arrears(result: Result, tr: Translator = GERMAN, real: bool = True) -> go.Figure:
     """Repayments not made on the due date and the open arrears per year."""
     tab = result.table.loc[1:]
-    deflator = _deflator(result).loc[1:]
+    deflator = _deflator(result, real).loc[1:]
     fig = go.Figure()
     fig.add_bar(
         x=tab["year"],
@@ -226,26 +243,28 @@ def arrears(result: Result, tr: Translator = GERMAN) -> go.Figure:
         mode="lines",
         line_color=INK,
     )
-    title = _real_title(tr("chart.arrears.title"), int(tab["year"].iloc[0]), tr)
+    title = _title(tr("chart.arrears.title"), int(tab["year"].iloc[0]), tr, real)
     return _layout(fig, title, "", tr)
 
 
-def debt_balances(result: Result, scenario: Scenario, tr: Translator = GERMAN) -> go.Figure:
+def debt_balances(
+    result: Result, scenario: Scenario, tr: Translator = GERMAN, real: bool = True
+) -> go.Figure:
     """Outstanding debt per loan tranche at year end and in total; member equity is omitted."""
     kinds = _kinds(scenario)
     years = result.table["year"]
-    deflator = _deflator(result)
+    deflator = _deflator(result, real)
     fig = go.Figure()
     total = 0.0
     for name, schedule in result.tranches.items():
         kind = kinds[name]
         if kind == "equity" or not schedule["balance"].any():
             continue
-        real = schedule["balance"] / deflator
-        total = total + real
+        balance = schedule["balance"] / deflator
+        total = total + balance
         color = TRANCHE_COLORS.get(name, NEUTRAL)
         fig.add_scatter(
-            x=years, y=real, name=_label(name, kind, tr), mode="lines", line_color=color
+            x=years, y=balance, name=_label(name, kind, tr), mode="lines", line_color=color
         )
     if result.table["arrears"].any():
         open_arrears = result.table["arrears"] / deflator
@@ -264,14 +283,14 @@ def debt_balances(result: Result, scenario: Scenario, tr: Translator = GERMAN) -
         mode="lines",
         line={"dash": "dash", "color": INK},
     )
-    title = _real_title(tr("chart.debt.title"), int(years.loc[1]), tr)
+    title = _title(tr("chart.debt.title"), int(years.loc[1]), tr, real)
     return _layout(fig, title, "", tr)
 
 
-def liquidity(result: Result, tr: Translator = GERMAN) -> go.Figure:
+def liquidity(result: Result, tr: Translator = GERMAN, real: bool = True) -> go.Figure:
     """Account balance against the required minimum reserve."""
     tab = result.table.loc[1:]
-    deflator = _deflator(result).loc[1:]
+    deflator = _deflator(result, real).loc[1:]
     fig = go.Figure()
     fig.add_scatter(
         x=tab["year"],
@@ -295,36 +314,37 @@ def liquidity(result: Result, tr: Translator = GERMAN) -> go.Figure:
             mode="lines",
             line={"dash": "dot", "color": SERIES[1]},
         )
-    title = _real_title(tr("chart.liquidity.title"), int(tab["year"].iloc[0]), tr)
+    title = _title(tr("chart.liquidity.title"), int(tab["year"].iloc[0]), tr, real)
     return _layout(fig, title, "", tr)
 
 
-def member_wealth(view: pd.DataFrame, tr: Translator = GERMAN) -> go.Figure:
+def member_wealth(view: pd.DataFrame, tr: Translator = GERMAN, real: bool = True) -> go.Figure:
     """A member's wealth in the project against the market-rent alternative."""
     year1 = int(view["year"].iloc[0] - view.index[0] + 1)
+    scale = 1.0 if real else view["deflator"]
     fig = go.Figure()
     fig.add_scatter(
         x=view["year"],
-        y=view["project"],
+        y=view["project"] * scale,
         name=tr("chart.member.project"),
         mode="lines",
         line_color=SERIES[0],
     )
     fig.add_scatter(
         x=view["year"],
-        y=view["alternative"],
+        y=view["alternative"] * scale,
         name=tr("chart.member.market"),
         mode="lines",
         line_color=SERIES[1],
     )
     fig.add_scatter(
         x=view["year"],
-        y=view["default"],
+        y=view["default"] * scale,
         name=tr("chart.member.default"),
         mode="lines",
         line={"dash": "dash", "color": NEUTRAL},
     )
-    return _layout(fig, _real_title(tr("chart.member.title"), year1, tr), "", tr)
+    return _layout(fig, _title(tr("chart.member.title"), year1, tr, real), "", tr)
 
 
 def investment_curve(
@@ -405,7 +425,7 @@ def rent_distribution(
     return fig
 
 
-def headroom_band(band: pd.DataFrame, tr: Translator = GERMAN) -> go.Figure:
+def headroom_band(band: pd.DataFrame, tr: Translator = GERMAN, real: bool = True) -> go.Figure:
     """Liquidity above the minimum reserve at the safe rent: median and 10-90 % band."""
     upper, middle = tr("chart.band.p90"), tr("chart.band.band")
     fig = go.Figure()
@@ -440,7 +460,7 @@ def headroom_band(band: pd.DataFrame, tr: Translator = GERMAN) -> go.Figure:
         mode="lines",
         line={"dash": "dash", "color": NEUTRAL},
     )
-    title = _real_title(tr("chart.band.title"), int(band["year"].iloc[0]), tr)
+    title = _title(tr("chart.band.title"), int(band["year"].iloc[0]), tr, real)
     fig = _layout(fig, title, "", tr)
     fig.update_traces(line_width=0, selector={"name": middle})
     fig.update_traces(line_width=0, selector={"name": upper})

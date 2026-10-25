@@ -96,13 +96,9 @@ zit.
     "label.persons": "Aantal personen",
     "label.equity_per_person": "Inleg per persoon (€)",
     "label.member_loan_per_person": "Ledenlening per persoon (€)",
-    "label.member_loan_rate_pct": "Rente ledenleningen (%)",
     "label.direct_loans_5y": "Directe leningen 5 jaar (€)",
-    "label.direct_loan_rate_5y_pct": "Rente 5 jaar (%)",
     "label.direct_loans_10y": "Directe leningen 10 jaar (€)",
-    "label.direct_loan_rate_10y_pct": "Rente 10 jaar (%)",
     "label.subsidy": "Subsidielening (€)",
-    "label.bank_rate_pct": "Bankrente (%)",
     "label.bank_repayment": "Aflossingsvorm bank",
     "label.bank_term_years": "Looptijd bank (jaar)",
     "label.bank_rate_change": "Bankrente na 10 jaar",
@@ -120,7 +116,6 @@ zit.
     "label.max_arrears_years": "Achterstand hoogstens (jaar)",
     "label.ancillary_cost_pct": "Kosten koper (%)",
     "label.leasehold_rate_pct": "Erfpachtcanon (%)",
-    "label.subsidy_rate_pct": "Rente subsidieleningen (%)",
     "label.subsidy_term_years": "Looptijd subsidieleningen (jaar)",
     "label.member_loan_term_years": "Looptijd ledenleningen (jaar)",
     "label.member_type": "Type lid",
@@ -129,7 +124,6 @@ zit.
     "label.entry_year": "Intrek (jaar)",
     "label.exit_year": "Vertrek (jaar)",
     "label.market_rent": "Markthuur per persoon (€/maand)",
-    "label.alt_return_pct": "Alternatief rendement (%)",
     "label.inflation_range": "Inflatie (%)",
     "label.bank_change_range": "Bankrente na 10 jr. (± %-punt)",
     "label.vacancy_range": "Huurderving (%)",
@@ -181,28 +175,20 @@ zit.
         "(standaard 15 jaar, onder „Uitgebreid”) wordt alles inclusief samengestelde rente "
         "ineens terugbetaald."
     ),
-    "info.member_loan_rate_pct": "Rente op ledenleningen, wordt bij de lening bijgeschreven.",
     "info.direct_loans_5y": (
         "Achtergestelde particuliere leningen van sympathisanten (Direktkredite) over 5 jaar. "
         "De rente wordt jaarlijks uitbetaald, het bedrag na 5 jaar ineens terugbetaald. Omdat "
         "ze achtergesteld zijn, rekenen banken directe leningen meestal als quasi-eigen "
         "vermogen."
     ),
-    "info.direct_loan_rate_5y_pct": "Rente op directe leningen van 5 jaar, jaarlijks uitbetaald.",
     "info.direct_loans_10y": (
         "Als hierboven, maar over 10 jaar. Langere looptijden hebben meestal een hogere rente."
     ),
-    "info.direct_loan_rate_10y_pct": "Rente op directe leningen van 10 jaar, jaarlijks uitbetaald.",
     "info.subsidy": (
         "Subsidielening (Förderdarlehen, bijv. KfW of een regionale ontwikkelingsbank) als "
         "annuïteit; rente en looptijd onder „Uitgebreid” (standaard 1,5 % over 30 jaar). "
         "Alleen bruikbaar voor renovatiekosten, dus hoogstens zo hoog als die. Telt niet als "
         "quasi-eigen vermogen."
-    ),
-    "info.bank_rate_pct": (
-        "Rente van de banklening voor de eerste 10 jaar. Die hangt af van de marktrente, niet "
-        "direct van de inflatie: vaak lag ze 1 tot 3 procentpunt hoger, maar van 2015 tot "
-        "2021 rond of onder de inflatie."
     ),
     "info.bank_repayment": (
         "Annuïteit: gelijkblijvende termijn van rente en aflossing, in het begin veel rente. "
@@ -212,10 +198,6 @@ zit.
     "info.bank_rate_change": (
         "Na 10 jaar eindigt de rentevaste periode. Voor de herfinanciering wordt de rente met "
         "1 procentpunt verlaagd, gelijk gehouden of verhoogd."
-    ),
-    "info.inflation_pct": (
-        "Jaarlijkse inflatie. Huur, exploitatiekosten en erfpachtcanon stijgen daarmee; rente "
-        "en aflossing liggen nominaal vast. Daarom is meestal het eerste jaar het krapst."
     ),
     "info.surplus_use": (
         "Geldt vanaf het jaar waarin bank- en subsidieleningen zijn afgelost (A4). "
@@ -269,7 +251,6 @@ zit.
         "terugbetaald. Langere looptijden schuiven de grote terugbetaling naar achteren, "
         "maar laten meer samengestelde rente oplopen."
     ),
-    "info.subsidy_rate_pct": "Rente van de subsidieleningen, vast over de hele looptijd.",
     "info.subsidy_term_years": (
         "Looptijd van de subsidieleningen; ze worden als annuïteit afgelost."
     ),
@@ -299,11 +280,6 @@ zit.
     "info.market_rent": (
         "Wat een vergelijkbare woning of kamer op de markt per persoon per maand kost, in "
         "dezelfde eenheid als de projecthuur. Stijgt met de inflatie."
-    ),
-    "info.alt_return_pct": (
-        "Nominaal rendement per jaar als het geld elders in plaats van in het project zou "
-        "worden belegd (bijv. een breed gespreid fonds). Alle besparingen van het lid worden "
-        "tegen hetzelfde rendement belegd."
     ),
     "info.target_rent": (
         "De huur die een persoon in het eerste jaar per maand wil of kan betalen. Daarna "
@@ -767,4 +743,77 @@ Hoe sterk elke onzekere aanname samenhangt met de benodigde huur (rangcorrelatie
     "chart.uncertain.member_loan_term_years": "Looptijd ledenleningen",
     "chart.uncertain.member_loan_factor": "Omvang ledenleningen",
     "chart.uncertain.direct_loans_10y_factor": "Omvang directe leningen 10 jaar",
+    # Rates relative to inflation, member loan payoff, nominal display
+    "label.member_loan_spread_pp": "Rente ledenleningen (%-punt boven inflatie)",
+    "label.direct_loan_spread_5y_pp": "Rente 5 jaar (%-punt boven inflatie)",
+    "label.direct_loan_spread_10y_pp": "Rente 10 jaar (%-punt boven inflatie)",
+    "label.bank_spread_pp": "Bankrente (%-punt boven inflatie)",
+    "label.subsidy_spread_pp": "Rente subsidieleningen (%-punt boven inflatie)",
+    "label.alt_return_spread_pp": "Alternatief rendement (%-punt boven inflatie)",
+    "info.member_loan_spread_pp": (
+        "Rente op ledenleningen in procentpunten boven de inflatie; ze wordt bij de "
+        "lening bijgeschreven. Voorbeeld: 3 bij 2 % inflatie geeft 5 % rente."
+    ),
+    "info.direct_loan_spread_5y_pp": (
+        "Rente op directe leningen van 5 jaar in procentpunten boven de inflatie, "
+        "jaarlijks uitbetaald. Negatieve waarden betekenen: rente onder de inflatie."
+    ),
+    "info.direct_loan_spread_10y_pp": (
+        "Rente op directe leningen van 10 jaar in procentpunten boven de inflatie, "
+        "jaarlijks uitbetaald."
+    ),
+    "info.bank_spread_pp": (
+        "Rente van de banklening voor de eerste 10 jaar, in procentpunten boven de "
+        "inflatie. Die hangt af van de marktrente, niet direct van de inflatie: vaak lag "
+        "ze 1 tot 3 procentpunt hoger, maar van 2015 tot 2021 rond of onder de inflatie. "
+        "De rente ligt vast bij het afsluiten en volgt daarna de inflatie niet meer."
+    ),
+    "info.subsidy_spread_pp": (
+        "Rente van de subsidieleningen in procentpunten boven de inflatie, vast over de "
+        "hele looptijd. Subsidierentes liggen vaak onder de inflatie (negatieve waarde)."
+    ),
+    "info.alt_return_spread_pp": (
+        "Rendement per jaar in procentpunten boven de inflatie als het geld elders in "
+        "plaats van in het project zou worden belegd (bijv. een breed gespreid fonds). "
+        "Alle besparingen van het lid worden tegen hetzelfde rendement belegd."
+    ),
+    "info.inflation_pct": (
+        "Jaarlijkse inflatie. Huur, exploitatiekosten en erfpachtcanon stijgen daarmee. "
+        "Alle rentes worden ten opzichte van de inflatie ingevoerd en bewegen mee; is een"
+        " lening eenmaal afgesloten, dan liggen rente en aflossing nominaal vast. Daarom "
+        "is meestal het eerste jaar het krapst."
+    ),
+    "summary.rates": (
+        "Nominaal bij {inflation} inflatie: bank {bank} (na 10 jr. {follow_up}), subsidie"
+        " {subsidy}, directe leningen {dk5} / {dk10}, ledenleningen {member}"
+    ),
+    "label.member_loan_payoff": "Terugbetaling van ledenleningen",
+    "info.member_loan_payoff": (
+        "Waar het geld vandaan komt als de ledenleningen inclusief rente vervallen. Uit "
+        "liquiditeit: de rekening betaalt wat kan zonder onder de reserve te komen, de "
+        "rest wordt als achterstand nabetaald. Nieuwe banklening: het hele bedrag wordt "
+        "tegen de nieuwe bankrente gefinancierd, als annuïteit of lineaire lening over de"
+        " resterende looptijd van de banklening, minstens 10 jaar. Nieuwe directe "
+        "leningen: het hele bedrag wordt met directe leningen van 10 jaar tegen de "
+        "10-jaarsrente gefinancierd, die na 10 jaar vervallen."
+    ),
+    "option.member_loan_payoff.liquidity": "Uit liquiditeit",
+    "option.member_loan_payoff.bank": "Nieuwe banklening",
+    "option.member_loan_payoff.direct_loans": "Nieuwe directe leningen 10 jr.",
+    "label.display": "Grafieken",
+    "info.display": (
+        "Gecorrigeerd voor inflatie: alle bedragen in koopkracht van jaar 1, zodat jaren "
+        "direct vergelijkbaar zijn. Nominaal: de werkelijke eurobedragen van elk jaar; "
+        "huur en kosten groeien dan zichtbaar met de inflatie."
+    ),
+    "option.display.real": "gecorrigeerd voor inflatie",
+    "option.display.nominal": "nominaal",
+    "chart.nominal_subtitle": "nominaal, werkelijke eurobedragen van elk jaar",
+    "help.nominal_note": (
+        "*De grafiek toont nu nominale bedragen; de uitleg hieronder gaat over de "
+        "weergave gecorrigeerd voor inflatie.*\n"
+    ),
+    "chart.tranche.bank_refinance": "Banklening voor ledenleningen",
+    "chart.tranche.direct_loans_refinance": "Directe leningen voor ledenleningen",
+    "chart.costs.refinancing": "Nieuwe lening voor ledenleningen (instroom)",
 }

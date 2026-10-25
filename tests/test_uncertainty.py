@@ -69,8 +69,13 @@ def test_ranges_collapsed_onto_current_inputs_reproduce_base_rent():
     )
 
 
-def test_costlier_renovation_raises_rent_and_ranks_as_positive_driver(result):
-    assert result.sensitivity["renovation_factor"] > 0.3
+def test_costlier_renovation_raises_rent(result):
+    assert result.sensitivity["renovation_factor"] > 0
+
+
+def test_inflation_is_the_strongest_driver_because_rates_follow_it(result):
+    assert result.sensitivity.index[0] == "inflation"
+    assert result.sensitivity["inflation"] > 0.5
 
 
 def test_band_has_one_row_per_operating_year(result):
@@ -88,3 +93,20 @@ def test_member_loan_term_draws_are_whole_years_within_range():
     draws = latin_hypercube(ProjectInputs(), Ranges(), n=N)
     terms = [_apply(ProjectInputs(), d).member_loan_term_years for _, d in draws.iterrows()]
     assert all(isinstance(t, int) and 10 <= t <= 20 for t in terms)
+
+
+def test_sampled_inflation_shifts_all_rates_by_the_same_amount():
+    from model.uncertainty import _apply
+
+    p = ProjectInputs()
+    draw = latin_hypercube(p, Ranges(), n=N).iloc[0].copy()
+    draw["inflation"] = p.inflation + 0.01
+    v = _apply(p, draw)
+    for rate in ("bank_rate", "subsidy_rate", "direct_loan_rate_5y", "member_loan_rate"):
+        assert getattr(v, rate) == pytest.approx(getattr(p, rate) + 0.01)
+
+
+def test_nominal_band_equals_real_band_in_year_one(result):
+    first_real = result.headroom_band.iloc[0]
+    first_nominal = result.headroom_band_nominal.iloc[0]
+    assert first_nominal["p50"] == pytest.approx(first_real["p50"])

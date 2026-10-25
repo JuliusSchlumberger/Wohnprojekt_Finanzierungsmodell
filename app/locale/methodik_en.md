@@ -1,8 +1,9 @@
 # Methodology
 
 The calculator models a joint housing project over 50 years in yearly steps. All amounts are
-calculated in nominal terms; the charts show them adjusted for inflation, in purchasing power
-of year 1.
+calculated in nominal terms; the charts show them either adjusted for inflation, in
+purchasing power of year 1, or nominal. All interest rates are entered as a spread above
+inflation in percentage points; the nominal rate is inflation plus spread, at least 0 %.
 
 ## Financing at the start
 
@@ -31,10 +32,15 @@ plus repayments of direct and member loans falling due and the use of the surplu
 - **Subsidised loan**: annuity with a fixed rate.
 - **Direct loans**: interest every year, repayment at the end of the term (5 or 10 years).
 - **Member loans**: interest is added to the loan (compound interest), repayment including
-  interest at the end of the term (default 15 years, adjustable under “Advanced”).
+  interest at the end of the term (default 15 years, adjustable under “Advanced”). The
+  repayment comes either from the account (with arrears, see below), from a new bank loan
+  at the follow-up rate (term: rest of the bank term, at least 10 years) or from new
+  10-year direct loans at the 10-year direct loan rate. The new loan covers the full amount
+  due including interest and is serviced from the following year.
 - **Arrears**: if a repayment falling due would push the account below the minimum reserve,
   only the possible part is paid. The rest is paid as soon as possible, oldest first, bears
-  interest until then and must be settled within the chosen deadline. No new loans are
+  interest until then and must be settled within the chosen deadline. Apart from the chosen
+  refinancing of the member loans, no new loans are
   taken up.
 - **Surplus**: if no arrears are open and the account above the reserve covers all
   remaining direct and member loans, the rest is taken out: as a rent reduction, as a rent
@@ -52,9 +58,10 @@ plus repayments of direct and member loans falling due and the use of the surplu
 - **Mode 3, target rent**: the largest total investment a target rent can carry, limited by
   the bank's equity requirement. Land, house and renovation are scaled in proportion to the
   cost estimate.
-- **Uncertainty**: for five inputs with a range, variants are drawn (Latin hypercube,
+- **Uncertainty**: for eight inputs with a range, variants are drawn (Latin hypercube,
   triangular distribution with the current value as the most likely) and the required rent
-  is found for each, to 50 cents.
+  is found for each, to 50 cents. Interest rates move with the sampled inflation and keep
+  their spread above it.
 
 ## Limits of the model
 
@@ -63,7 +70,7 @@ plus repayments of direct and member loans falling due and the use of the surplu
   mode 2 looks at a single member who does not affect the project financing.
 - **Fixed loan types**: direct loans with 5 and 10 years, member loans with an adjustable
   term, one bank and one subsidised loan. Loans are not cancelled early, and no replacement
-  is taken up after maturity.
+  is taken up after maturity, except the optional refinancing of the member loans.
 - **Expected values**: apart from the uncertainty page, fixed values are used; vacancy,
   interest changes and inflation are assumptions, not forecasts.
 - **Legal form** is not distinguished; its effect (e.g. higher administration costs in a

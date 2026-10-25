@@ -21,6 +21,8 @@
 - Opening liquidity defaults to `min_liquidity_months` of year-1 rent, financed by the
   residual tranche (normally the bank loan).
 - Bank and subsidy loans are "senior"; the A4 surplus rule applies after they are repaid.
+- App rate inputs are spreads above inflation in pp (`*_spread_pp`); the model takes nominal
+  rates = max(inflation + spread, 0). Charts default to real values (year-1 purchasing power).
 
 ## Baselines
 

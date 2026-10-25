@@ -104,3 +104,13 @@ def test_subsidy_grant_reduces_repaid_principal():
         horizon=30,
     )
     assert s.repayment.sum() == pytest.approx(P - grant)
+
+
+def test_year_end_drawdown_starts_service_the_following_year():
+    tr = Tranche(
+        "r", "bank_loan", P, R, "annuity", term_years=N, drawdown_year=5, year_end_drawdown=True
+    )
+    s = tranche_schedule(tr, horizon=40)
+    assert s.inflow[5] == P and s.balance[5] == P
+    assert s.interest[5] == 0 and s.interest[6] == pytest.approx(P * R)
+    assert s.balance[5 + N] == pytest.approx(0, abs=1e-6)

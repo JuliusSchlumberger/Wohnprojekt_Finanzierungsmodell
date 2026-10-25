@@ -8,10 +8,16 @@ import param
 from app.i18n import DEFAULT_LANGUAGE, LANGUAGES, Translator
 from app.layout import ADVANCED_BOX_HEIGHT, START_BOX_HEIGHT, START_BOX_WIDTH, box
 from model.member import MemberInputs
-from model.presets import ProjectInputs
+from model.presets import BANK_RATE_CHANGE_STEP, ProjectInputs
 
 _D = ProjectInputs()
 _M = MemberInputs()
+
+
+def _spread(nominal_rate: float) -> float:
+    """Default spread in percentage points above the default inflation."""
+    return round(100 * (nominal_rate - _D.inflation), 2)
+
 
 MEMBER_PRESETS = {
     "custom": None,
@@ -31,7 +37,15 @@ OPTIONS = {
         "next_project": "next_project",
     },
     "member_type": {key: key for key in MEMBER_PRESETS},
+    "member_loan_payoff": {
+        "liquidity": "liquidity",
+        "bank": "bank",
+        "direct_loans": "direct_loans",
+    },
+    "display": {"real": "real", "nominal": "nominal"},
 }
+# Inputs that only change how results are shown, not the results.
+DISPLAY_INPUTS = ("language", "display")
 
 _EUR = {"type": pn.widgets.FloatInput, "format": "0,0", "step": 10_000}
 _EUR_PERSON = {"type": pn.widgets.FloatInput, "format": "0,0", "step": 500}
@@ -48,13 +62,13 @@ WIDGETS = {
     "persons": _INT,
     "equity_per_person": _EUR_PERSON,
     "member_loan_per_person": _EUR_PERSON,
-    "member_loan_rate_pct": _SLIDER,
+    "member_loan_spread_pp": _SLIDER,
     "direct_loans_5y": _EUR,
-    "direct_loan_rate_5y_pct": _SLIDER,
+    "direct_loan_spread_5y_pp": _SLIDER,
     "direct_loans_10y": _EUR,
-    "direct_loan_rate_10y_pct": _SLIDER,
+    "direct_loan_spread_10y_pp": _SLIDER,
     "subsidy": _EUR,
-    "bank_rate_pct": _SLIDER,
+    "bank_spread_pp": _SLIDER,
     "bank_repayment": _RADIO,
     "bank_term_years": _INT,
     "bank_rate_change": _RADIO,
@@ -70,9 +84,11 @@ WIDGETS = {
     "max_arrears_years": _INT,
     "ancillary_cost_pct": _SLIDER,
     "leasehold_rate_pct": _SLIDER,
-    "subsidy_rate_pct": _SLIDER,
+    "subsidy_spread_pp": _SLIDER,
     "subsidy_term_years": _INT,
     "member_loan_term_years": _INT,
+    "member_loan_payoff": {"type": pn.widgets.RadioBoxGroup},
+    "display": _RADIO,
     "vacancy_pct": _SLIDER,
     "initial_vacancy_pct": _SLIDER,
     "member_type": {"type": pn.widgets.Select},
@@ -81,7 +97,7 @@ WIDGETS = {
     "entry_year": _INT,
     "exit_year": _INT,
     "market_rent": {"type": pn.widgets.FloatSlider, "step": 10},
-    "alt_return_pct": _SLIDER,
+    "alt_return_spread_pp": _SLIDER,
 }
 
 SECTIONS = {
@@ -96,33 +112,33 @@ SECTIONS = {
     "own_funds": [
         "equity_per_person",
         "member_loan_per_person",
-        "member_loan_rate_pct",
+        "member_loan_spread_pp",
         "min_equity_like_pct",
     ],
     "direct_loans": [
         "direct_loans_5y",
-        "direct_loan_rate_5y_pct",
+        "direct_loan_spread_5y_pp",
         "direct_loans_10y",
-        "direct_loan_rate_10y_pct",
+        "direct_loan_spread_10y_pp",
     ],
     "bank": [
         "subsidy",
-        "bank_rate_pct",
+        "bank_spread_pp",
         "bank_repayment",
         "bank_term_years",
         "bank_rate_change",
     ],
     "surplus": ["surplus_use", "target_rent"],
     "member_capital": ["member_type", "member_equity", "member_loan_personal"],
-    "member_compare": ["entry_year", "exit_year", "market_rent", "alt_return_pct"],
+    "member_compare": ["entry_year", "exit_year", "market_rent", "alt_return_spread_pp"],
 }
 
 ADVANCED_SECTIONS = {
     "adv_operations": ["admin_cost_per_year", "insurance_per_year", "maintenance_rate_pct"],
     "adv_liquidity": ["min_liquidity_months", "max_arrears_years"],
     "adv_purchase": ["ancillary_cost_pct", "leasehold_rate_pct"],
-    "adv_subsidy": ["subsidy_rate_pct", "subsidy_term_years"],
-    "adv_member_loans": ["member_loan_term_years"],
+    "adv_subsidy": ["subsidy_spread_pp", "subsidy_term_years"],
+    "adv_member_loans": ["member_loan_term_years", "member_loan_payoff"],
 }
 
 
@@ -140,13 +156,17 @@ class Inputs(param.Parameterized):
     persons = param.Integer(_D.persons, bounds=(1, 200))
     equity_per_person = param.Number(_D.equity / _D.persons, bounds=(0, None))
     member_loan_per_person = param.Number(_D.member_loans / _D.persons, bounds=(0, None))
-    member_loan_rate_pct = param.Number(100 * _D.member_loan_rate, bounds=(0, 8), step=0.1)
+    member_loan_spread_pp = param.Number(_spread(_D.member_loan_rate), bounds=(-2, 8), step=0.1)
     direct_loans_5y = param.Number(_D.direct_loans_5y, bounds=(0, None))
-    direct_loan_rate_5y_pct = param.Number(100 * _D.direct_loan_rate_5y, bounds=(0, 5), step=0.1)
+    direct_loan_spread_5y_pp = param.Number(
+        _spread(_D.direct_loan_rate_5y), bounds=(-2, 5), step=0.1
+    )
     direct_loans_10y = param.Number(_D.direct_loans_10y, bounds=(0, None))
-    direct_loan_rate_10y_pct = param.Number(100 * _D.direct_loan_rate_10y, bounds=(0, 5), step=0.1)
+    direct_loan_spread_10y_pp = param.Number(
+        _spread(_D.direct_loan_rate_10y), bounds=(-2, 5), step=0.1
+    )
     subsidy = param.Number(_D.subsidy, bounds=(0, None))
-    bank_rate_pct = param.Number(100 * _D.bank_rate, bounds=(0, 10), step=0.1)
+    bank_spread_pp = param.Number(_spread(_D.bank_rate), bounds=(-2, 10), step=0.1)
     bank_repayment = param.Selector(objects=list(OPTIONS["bank_repayment"]), default="annuity")
     bank_term_years = param.Integer(_D.bank_term_years, bounds=(10, 50))
     bank_rate_change = param.Selector(
@@ -168,16 +188,20 @@ class Inputs(param.Parameterized):
     max_arrears_years = param.Integer(_D.max_arrears_years, bounds=(0, 10))
     ancillary_cost_pct = param.Number(100 * _D.ancillary_cost_rate, bounds=(0, 15), step=0.5)
     leasehold_rate_pct = param.Number(100 * _D.leasehold_rate, bounds=(0, 8), step=0.1)
-    subsidy_rate_pct = param.Number(100 * _D.subsidy_rate, bounds=(0, 5), step=0.1)
+    subsidy_spread_pp = param.Number(_spread(_D.subsidy_rate), bounds=(-3, 5), step=0.1)
     subsidy_term_years = param.Integer(_D.subsidy_term_years, bounds=(10, 40))
     member_loan_term_years = param.Integer(_D.member_loan_term_years, bounds=(5, 30))
+    member_loan_payoff = param.Selector(
+        objects=list(OPTIONS["member_loan_payoff"]), default=_D.member_loan_payoff
+    )
+    display = param.Selector(objects=list(OPTIONS["display"]), default="real")
     member_type = param.Selector(objects=list(MEMBER_PRESETS), default="custom")
     member_equity = param.Number(_M.equity, bounds=(0, None))
     member_loan_personal = param.Number(_M.member_loan, bounds=(0, None))
     entry_year = param.Integer(_M.entry_year, bounds=(0, 49))
     exit_year = param.Integer(_M.exit_year, bounds=(1, 50))
     market_rent = param.Number(_M.market_rent, bounds=(100, 2_000))
-    alt_return_pct = param.Number(100 * _M.alt_return, bounds=(0, 10), step=0.1)
+    alt_return_spread_pp = param.Number(_spread(_M.alt_return), bounds=(-3, 10), step=0.1)
 
     def __init__(self, **params):
         super().__init__(**params)
@@ -191,7 +215,7 @@ class Inputs(param.Parameterized):
     def apply_language(self) -> None:
         """Set labels and option names of every input to the current language."""
         tr = self.tr
-        for name in self.input_names():
+        for name in [*self.input_names(), "display"]:
             self.param[name].label = tr(f"label.{name}")
         for name, options in OPTIONS.items():
             value = getattr(self, name)
@@ -199,6 +223,10 @@ class Inputs(param.Parameterized):
                 tr(f"option.{name}.{key}"): option for option, key in options.items()
             }
             setattr(self, name, value)
+
+    def _nominal(self, spread_pp: float) -> float:
+        """Nominal rate (fraction) for a spread above inflation; never negative."""
+        return max((self.inflation_pct + spread_pp) / 100, 0.0)
 
     def to_project(self) -> ProjectInputs:
         return ProjectInputs(
@@ -209,13 +237,13 @@ class Inputs(param.Parameterized):
             persons=self.persons,
             equity=self.equity_per_person * self.persons,
             member_loans=self.member_loan_per_person * self.persons,
-            member_loan_rate=self.member_loan_rate_pct / 100,
+            member_loan_rate=self._nominal(self.member_loan_spread_pp),
             direct_loans_5y=self.direct_loans_5y,
-            direct_loan_rate_5y=self.direct_loan_rate_5y_pct / 100,
+            direct_loan_rate_5y=self._nominal(self.direct_loan_spread_5y_pp),
             direct_loans_10y=self.direct_loans_10y,
-            direct_loan_rate_10y=self.direct_loan_rate_10y_pct / 100,
+            direct_loan_rate_10y=self._nominal(self.direct_loan_spread_10y_pp),
             subsidy=self.subsidy,
-            bank_rate=self.bank_rate_pct / 100,
+            bank_rate=self._nominal(self.bank_spread_pp),
             bank_repayment=self.bank_repayment,
             bank_term_years=self.bank_term_years,
             bank_rate_change=self.bank_rate_change,
@@ -229,9 +257,10 @@ class Inputs(param.Parameterized):
             max_arrears_years=self.max_arrears_years,
             ancillary_cost_rate=self.ancillary_cost_pct / 100,
             leasehold_rate=self.leasehold_rate_pct / 100,
-            subsidy_rate=self.subsidy_rate_pct / 100,
+            subsidy_rate=self._nominal(self.subsidy_spread_pp),
             subsidy_term_years=self.subsidy_term_years,
             member_loan_term_years=self.member_loan_term_years,
+            member_loan_payoff=self.member_loan_payoff,
             initial_vacancy_rate=self.initial_vacancy_pct / 100,
             surplus_use=self.surplus_use,
         )
@@ -240,12 +269,12 @@ class Inputs(param.Parameterized):
         return MemberInputs(
             equity=self.member_equity,
             member_loan=self.member_loan_personal,
-            member_loan_rate=self.member_loan_rate_pct / 100,
+            member_loan_rate=self._nominal(self.member_loan_spread_pp),
             member_loan_term_years=self.member_loan_term_years,
             entry_year=self.entry_year,
             exit_year=self.exit_year,
             market_rent=self.market_rent,
-            alt_return=self.alt_return_pct / 100,
+            alt_return=(self.inflation_pct + self.alt_return_spread_pp) / 100,
         )
 
     @param.depends("member_type", watch=True)
@@ -255,8 +284,8 @@ class Inputs(param.Parameterized):
             self.param.update(member_equity=preset[0], member_loan_personal=preset[1])
 
     def input_names(self) -> list[str]:
-        """Inputs that change results; the language only changes texts."""
-        return [p for p in self.param if p not in ("name", "language")]
+        """Inputs that change results; language and display only change how they are shown."""
+        return [p for p in self.param if p not in ("name", *DISPLAY_INPUTS)]
 
     def widget(self, name: str) -> pn.viewable.Viewable:
         """A new widget bound to the shared parameter, with its info icon."""
@@ -292,6 +321,32 @@ class Inputs(param.Parameterized):
             )
         )
 
+    @param.depends(
+        "inflation_pct",
+        "bank_spread_pp",
+        "bank_rate_change",
+        "subsidy_spread_pp",
+        "direct_loan_spread_5y_pp",
+        "direct_loan_spread_10y_pp",
+        "member_loan_spread_pp",
+    )
+    def rates_summary(self) -> pn.viewable.Viewable:
+        tr, p = self.tr, self.to_project()
+        follow_up = max(p.bank_rate + p.bank_rate_change * BANK_RATE_CHANGE_STEP, 0.0)
+        return pn.pane.Markdown(
+            tr(
+                "summary.rates",
+                inflation=tr.pct(p.inflation),
+                bank=tr.pct(p.bank_rate),
+                follow_up=tr.pct(follow_up),
+                subsidy=tr.pct(p.subsidy_rate),
+                dk5=tr.pct(p.direct_loan_rate_5y),
+                dk10=tr.pct(p.direct_loan_rate_10y),
+                member=tr.pct(p.member_loan_rate),
+            ),
+            styles={"font-size": "12px"},
+        )
+
     @param.depends("persons", "equity_per_person", "member_loan_per_person")
     def capital_summary(self) -> pn.viewable.Viewable:
         tr = self.tr
@@ -307,7 +362,11 @@ class Inputs(param.Parameterized):
     def all_inputs(self) -> pn.viewable.Viewable:
         """Every input in boxes of equal height; used on the start page."""
         tr = self.tr
-        extras = {"house": [self.cost_summary], "own_funds": [self.capital_summary]}
+        extras = {
+            "house": [self.cost_summary],
+            "own_funds": [self.capital_summary],
+            "group": [self.rates_summary],
+        }
         boxes = [
             box(
                 tr(f"section.{key}"),

@@ -93,13 +93,9 @@ pages at once. The **?** next to a field or a key figure explains what is behind
     "label.persons": "Number of persons",
     "label.equity_per_person": "Member share per person (€)",
     "label.member_loan_per_person": "Member loan per person (€)",
-    "label.member_loan_rate_pct": "Interest member loans (%)",
     "label.direct_loans_5y": "Direct loans 5 years (€)",
-    "label.direct_loan_rate_5y_pct": "Interest 5 years (%)",
     "label.direct_loans_10y": "Direct loans 10 years (€)",
-    "label.direct_loan_rate_10y_pct": "Interest 10 years (%)",
     "label.subsidy": "Subsidised loan (€)",
-    "label.bank_rate_pct": "Bank interest (%)",
     "label.bank_repayment": "Bank repayment type",
     "label.bank_term_years": "Bank term (years)",
     "label.bank_rate_change": "Bank interest after 10 years",
@@ -117,7 +113,6 @@ pages at once. The **?** next to a field or a key figure explains what is behind
     "label.max_arrears_years": "Arrears at most (years)",
     "label.ancillary_cost_pct": "Purchase costs (%)",
     "label.leasehold_rate_pct": "Ground rent (%)",
-    "label.subsidy_rate_pct": "Interest subsidised loans (%)",
     "label.subsidy_term_years": "Term subsidised loans (years)",
     "label.member_loan_term_years": "Term member loans (years)",
     "label.member_type": "Member type",
@@ -126,7 +121,6 @@ pages at once. The **?** next to a field or a key figure explains what is behind
     "label.entry_year": "Moving in (year)",
     "label.exit_year": "Moving out (year)",
     "label.market_rent": "Market rent per person (€/month)",
-    "label.alt_return_pct": "Alternative return (%)",
     "label.inflation_range": "Inflation (%)",
     "label.bank_change_range": "Bank interest after 10 y. (± pp)",
     "label.vacancy_range": "Rent loss (%)",
@@ -176,27 +170,19 @@ pages at once. The **?** next to a field or a key figure explains what is behind
         "the loan every year (accrued). At the end of the term (default 15 years, under "
         "“Advanced”) everything is repaid at once, including compound interest."
     ),
-    "info.member_loan_rate_pct": "Interest on member loans, added to the loan.",
     "info.direct_loans_5y": (
         "Subordinated private loans from supporters (Direktkredite) over 5 years. Interest is "
         "paid yearly, the amount is repaid at once after 5 years. Because they are "
         "subordinated, banks usually count direct loans as quasi-equity."
     ),
-    "info.direct_loan_rate_5y_pct": "Interest on 5-year direct loans, paid yearly.",
     "info.direct_loans_10y": (
         "As above, but over 10 years. Longer terms usually carry a higher interest rate."
     ),
-    "info.direct_loan_rate_10y_pct": "Interest on 10-year direct loans, paid yearly.",
     "info.subsidy": (
         "Subsidised loan (Förderdarlehen, e.g. KfW or a regional development bank) repaid as "
         "an annuity; rate and term under “Advanced” (default 1.5 % over 30 years). Only "
         "usable for renovation costs, so at most as high as these. Does not count as "
         "quasi-equity."
-    ),
-    "info.bank_rate_pct": (
-        "Interest rate of the bank loan for the first 10 years. It depends on market rates, "
-        "not directly on inflation: it was often 1 to 3 percentage points above, but from "
-        "2015 to 2021 close to or below inflation."
     ),
     "info.bank_repayment": (
         "Annuity: constant instalment of interest and repayment, a lot of interest at first. "
@@ -206,11 +192,6 @@ pages at once. The **?** next to a field or a key figure explains what is behind
     "info.bank_rate_change": (
         "After 10 years the fixed-rate period ends. For the follow-up financing the rate is "
         "lowered by 1 percentage point, kept or raised."
-    ),
-    "info.inflation_pct": (
-        "Yearly inflation. Rent, running costs and ground rent rise with it; interest and "
-        "repayment stay fixed in nominal terms. That is why the first year is usually the "
-        "tightest."
     ),
     "info.surplus_use": (
         "Applies from the year in which bank and subsidised loans are repaid (A4). Rent "
@@ -261,7 +242,6 @@ pages at once. The **?** next to a field or a key figure explains what is behind
         "After this many years member loans are repaid at once, including accrued interest. "
         "Longer terms push the large repayment back but let more compound interest accrue."
     ),
-    "info.subsidy_rate_pct": "Interest rate of the subsidised loans, fixed over the whole term.",
     "info.subsidy_term_years": "Term of the subsidised loans; they are repaid as an annuity.",
     "info.maintenance_reserve_pct": (
         "This share of the reconstruction value goes into the maintenance reserve every year, "
@@ -285,11 +265,6 @@ pages at once. The **?** next to a field or a key figure explains what is behind
     "info.market_rent": (
         "What a comparable flat or room costs on the market per person and month, in the same "
         "unit as the project rent. Rises with inflation."
-    ),
-    "info.alt_return_pct": (
-        "Nominal return per year if the money were invested elsewhere instead of in the "
-        "project (e.g. a broadly diversified fund). All of the member's savings are invested "
-        "at the same return."
     ),
     "info.target_rent": (
         "The rent one person wants or is able to pay per month in the first year. It rises "
@@ -738,4 +713,77 @@ How strongly each uncertain assumption is related to the required rent (rank cor
     "chart.uncertain.member_loan_term_years": "Term member loans",
     "chart.uncertain.member_loan_factor": "Amount of member loans",
     "chart.uncertain.direct_loans_10y_factor": "Amount of 10-year direct loans",
+    # Rates relative to inflation, member loan payoff, nominal display
+    "label.member_loan_spread_pp": "Interest member loans (pp above inflation)",
+    "label.direct_loan_spread_5y_pp": "Interest 5 years (pp above inflation)",
+    "label.direct_loan_spread_10y_pp": "Interest 10 years (pp above inflation)",
+    "label.bank_spread_pp": "Bank interest (pp above inflation)",
+    "label.subsidy_spread_pp": "Interest subsidised loans (pp above inflation)",
+    "label.alt_return_spread_pp": "Alternative return (pp above inflation)",
+    "info.member_loan_spread_pp": (
+        "Interest on member loans in percentage points above inflation; it is added to "
+        "the loan. Example: 3 at 2 % inflation gives 5 % interest."
+    ),
+    "info.direct_loan_spread_5y_pp": (
+        "Interest on 5-year direct loans in percentage points above inflation, paid "
+        "yearly. Negative values mean: interest below inflation."
+    ),
+    "info.direct_loan_spread_10y_pp": (
+        "Interest on 10-year direct loans in percentage points above inflation, paid yearly."
+    ),
+    "info.bank_spread_pp": (
+        "Interest rate of the bank loan for the first 10 years, in percentage points "
+        "above inflation. It depends on market rates, not directly on inflation: it was "
+        "often 1 to 3 percentage points above, but from 2015 to 2021 close to or below "
+        "inflation. The rate is fixed when the loan is taken out and does not follow "
+        "inflation afterwards."
+    ),
+    "info.subsidy_spread_pp": (
+        "Interest of the subsidised loans in percentage points above inflation, fixed "
+        "over the whole term. Subsidised rates are often below inflation (negative "
+        "value)."
+    ),
+    "info.alt_return_spread_pp": (
+        "Return per year in percentage points above inflation if the money were invested "
+        "elsewhere instead of in the project (e.g. a broadly diversified fund). All of "
+        "the member's savings are invested at the same return."
+    ),
+    "info.inflation_pct": (
+        "Yearly inflation. Rent, running costs and ground rent rise with it. All interest"
+        " rates are entered relative to inflation and move with it; once a loan is taken "
+        "out, its interest and repayment stay fixed in nominal terms. That is why the "
+        "first year is usually the tightest."
+    ),
+    "summary.rates": (
+        "Nominal at {inflation} inflation: bank {bank} (after 10 y. {follow_up}), subsidy"
+        " {subsidy}, direct loans {dk5} / {dk10}, member loans {member}"
+    ),
+    "label.member_loan_payoff": "Repayment of member loans",
+    "info.member_loan_payoff": (
+        "Where the money comes from when member loans fall due with their interest. From "
+        "liquidity: the account pays what it can without falling below the reserve, the "
+        "rest is paid later as arrears. New bank loan: the whole amount is financed at "
+        "the bank's follow-up rate, as an annuity or linear loan over the remaining term "
+        "of the bank loan, at least 10 years. New direct loans: the whole amount is "
+        "financed with 10-year direct loans at the 10-year rate, due after 10 years."
+    ),
+    "option.member_loan_payoff.liquidity": "From liquidity",
+    "option.member_loan_payoff.bank": "New bank loan",
+    "option.member_loan_payoff.direct_loans": "New direct loans 10 y.",
+    "label.display": "Charts",
+    "info.display": (
+        "Adjusted for inflation: all amounts in purchasing power of year 1, so years can "
+        "be compared directly. Nominal: the actual euro amounts of each year; rent and "
+        "costs then visibly grow with inflation."
+    ),
+    "option.display.real": "inflation-adjusted",
+    "option.display.nominal": "nominal",
+    "chart.nominal_subtitle": "nominal, actual euro amounts of each year",
+    "help.nominal_note": (
+        "*The chart currently shows nominal amounts; the explanation below refers to the "
+        "inflation-adjusted view.*\n"
+    ),
+    "chart.tranche.bank_refinance": "Bank loan for member loans",
+    "chart.tranche.direct_loans_refinance": "Direct loans for member loans",
+    "chart.costs.refinancing": "New loan for member loans (inflow)",
 }

@@ -43,7 +43,7 @@ def member_view(scenario: Scenario, result: Result, m: MemberInputs) -> pd.DataF
     while held. Alternative path: equity and loan amount are invested at
     `alt_return` instead and market rent is paid. The default path is the
     project path with equity and loan lost. Rows run from entry to the year
-    after exit, or to the horizon.
+    after exit, or to the horizon; multiplying by `deflator` gives nominal euros.
     """
     horizon = scenario.horizon_years
     if not 0 <= m.entry_year < m.exit_year <= horizon:
@@ -93,4 +93,5 @@ def member_view(scenario: Scenario, result: Result, m: MemberInputs) -> pd.DataF
     for column in ("rent_saving_month", "project", "alternative", "default"):
         out[column] = out[column] / deflator
     out["advantage"] = out["project"] - out["alternative"]
+    out["deflator"] = deflator
     return out
