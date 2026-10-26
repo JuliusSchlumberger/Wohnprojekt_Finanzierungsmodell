@@ -106,7 +106,6 @@ pages at once. The **?** next to a field or a key figure explains what is behind
     "label.maintenance_reserve_pct": "Maintenance reserve (%)",
     "label.vacancy_pct": "Rent loss (%)",
     "label.initial_vacancy_pct": "Rent loss first 3 years (%)",
-    "label.maintenance_rate_pct": "Maintenance (%)",
     "label.admin_cost_per_year": "Administration per year (€)",
     "label.insurance_per_year": "Insurance per year (€)",
     "label.min_liquidity_months": "Minimum reserve (months' rent)",
@@ -212,10 +211,6 @@ pages at once. The **?** next to a field or a key figure explains what is behind
     "info.initial_vacancy_pct": (
         "Rent loss in the first 3 years, while the house is still being moved into and renovated."
     ),
-    "info.maintenance_rate_pct": (
-        "What ongoing maintenance actually costs, in % of the reconstruction value per year. "
-        "Paid from the maintenance reserve."
-    ),
     "info.admin_cost_per_year": (
         "Administration, bookkeeping, audit (for a cooperative the auditing association), "
         "bank fees. Rises with inflation."
@@ -244,10 +239,8 @@ pages at once. The **?** next to a field or a key figure explains what is behind
     ),
     "info.subsidy_term_years": "Term of the subsidised loans; they are repaid as an annuity.",
     "info.maintenance_reserve_pct": (
-        "This share of the reconstruction value goes into the maintenance reserve every year, "
-        "rising with inflation. Ongoing maintenance (default 1.5 %, under “Advanced”) is paid "
-        "from it; the rest is saved for larger works. The reserve is a separate pot and does "
-        "not count as liquidity."
+        "This share of the reconstruction value (60 % of house plus renovation, without the "
+        "land) is set aside and spent on maintenance every year, rising with inflation."
     ),
     "info.member_type": (
         "Presets for this member's share and member loan. “Own values” lets you set them freely."
@@ -786,4 +779,17 @@ How strongly each uncertain assumption is related to the required rent (rank cor
     "chart.tranche.bank_refinance": "Bank loan for member loans",
     "chart.tranche.direct_loans_refinance": "Direct loans for member loans",
     "chart.costs.refinancing": "New loan for member loans (inflow)",
+    # Direct loan rollover
+    "label.direct_loan_rollover_pct": "Replaced at maturity (10 y.)",
+    "info.direct_loan_rollover_pct": (
+        "Which share of the 10-year direct loans is replaced by new direct loans every 10 "
+        "years; only the rest is repaid from the account. 0% means everything is repaid. Also"
+        " applies to direct loans that pay off the member loans. 5-year direct loans are "
+        "always repaid."
+    ),
+    "option.direct_loan_rollover_pct.0": "0%",
+    "option.direct_loan_rollover_pct.25": "25%",
+    "option.direct_loan_rollover_pct.50": "50%",
+    "option.direct_loan_rollover_pct.75": "75%",
+    "option.direct_loan_rollover_pct.100": "100%",
 }

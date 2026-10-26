@@ -105,7 +105,6 @@ Kennzahl erklärt, was dahintersteckt.
     "label.maintenance_reserve_pct": "Instandhaltungsrücklage (%)",
     "label.vacancy_pct": "Mietausfall (%)",
     "label.initial_vacancy_pct": "Mietausfall erste 3 Jahre (%)",
-    "label.maintenance_rate_pct": "Instandhaltung (%)",
     "label.admin_cost_per_year": "Verwaltung pro Jahr (€)",
     "label.insurance_per_year": "Versicherung pro Jahr (€)",
     "label.min_liquidity_months": "Mindestreserve (Monatsmieten)",
@@ -211,10 +210,6 @@ Kennzahl erklärt, was dahintersteckt.
     "info.initial_vacancy_pct": (
         "Mietausfall in den ersten 3 Jahren, solange das Haus noch bezogen und saniert wird."
     ),
-    "info.maintenance_rate_pct": (
-        "Was die laufende Instandhaltung tatsächlich kostet, in % des "
-        "Wiederherstellungswerts pro Jahr. Wird aus der Instandhaltungsrücklage bezahlt."
-    ),
     "info.admin_cost_per_year": (
         "Verwaltung, Buchhaltung, Prüfung (bei eG Prüfungsverband), Bankgebühren. Steigt mit "
         "der Inflation."
@@ -245,11 +240,9 @@ Kennzahl erklärt, was dahintersteckt.
     ),
     "info.subsidy_term_years": "Laufzeit der Förderdarlehen; sie werden als Annuität getilgt.",
     "info.maintenance_reserve_pct": (
-        "So viel vom Wiederherstellungswert fließt jedes Jahr in die "
-        "Instandhaltungsrücklage, mit der Inflation steigend. Daraus wird die laufende "
-        "Instandhaltung (Standard 1,5 %, unter „Erweitert“) bezahlt; der Rest bleibt für größere "
-        "Arbeiten angespart. Die "
-        "Rücklage ist ein eigener Topf und zählt nicht zur Liquidität."
+        "So viel vom Wiederherstellungswert (60 % von Haus plus Sanierung, ohne Grundstück) "
+        "wird jedes Jahr für Instandhaltung zurückgelegt und ausgegeben, mit der Inflation "
+        "steigend."
     ),
     "info.member_type": (
         "Voreinstellungen für Einlage und Mitgliederdarlehen dieses Mitglieds. "
@@ -808,4 +801,17 @@ Wie stark jede unsichere Annahme mit der erforderlichen Miete zusammenhängt
     "chart.tranche.bank_refinance": "Bankdarlehen für Mitgliederdarlehen",
     "chart.tranche.direct_loans_refinance": "Direktkredite für Mitgliederdarlehen",
     "chart.costs.refinancing": "Neues Darlehen für Mitgliederdarlehen (Zufluss)",
+    # Direct loan rollover
+    "label.direct_loan_rollover_pct": "Ersatz bei Fälligkeit (10 J.)",
+    "info.direct_loan_rollover_pct": (
+        "Welcher Anteil der 10-Jahres-Direktkredite alle 10 Jahre durch neue Direktkredite "
+        "ersetzt wird; nur der Rest wird aus dem Konto zurückgezahlt. 0 % heißt: alles wird "
+        "getilgt. Gilt auch für Direktkredite, die die Mitgliederdarlehen ablösen. 5-Jahres-"
+        "Direktkredite werden immer getilgt."
+    ),
+    "option.direct_loan_rollover_pct.0": "0 %",
+    "option.direct_loan_rollover_pct.25": "25 %",
+    "option.direct_loan_rollover_pct.50": "50 %",
+    "option.direct_loan_rollover_pct.75": "75 %",
+    "option.direct_loan_rollover_pct.100": "100 %",
 }

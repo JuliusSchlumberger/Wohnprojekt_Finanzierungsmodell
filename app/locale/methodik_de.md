@@ -25,12 +25,15 @@ dazu Rückzahlungen fälliger Direkt- und Mitgliederdarlehen und die Verwendung 
 - **Mieteinnahmen**: Miete pro Person × Personen × 12, abzüglich Mietausfall (in den ersten
   drei Jahren ein eigener, meist höherer Satz). Die Miete steigt mit der Inflation.
 - **Betriebskosten**: Zuführung zur Instandhaltungsrücklage, Verwaltung, Versicherung und
-  bei Erbbaurecht der Erbbauzins; alle steigen mit der Inflation. Die tatsächliche
-  Instandhaltung wird aus der Rücklage bezahlt, einem eigenen Topf außerhalb des Kontos.
+  bei Erbbaurecht der Erbbauzins; alle steigen mit der Inflation. Die Zuführung ist ein
+  fester Anteil des Wiederherstellungswerts (60 % von Haus plus Sanierung, ohne Grundstück)
+  und wird im selben Jahr für Instandhaltung ausgegeben.
 - **Bank**: Annuität oder Ratenkredit über die gewählte Laufzeit; nach 10 Jahren
   Zinsbindung gilt der Anschlusszins.
 - **Förderdarlehen**: Annuität mit festem Zins.
 - **Direktkredite**: Zinsen jährlich, Rückzahlung am Ende der Laufzeit (5 oder 10 Jahre).
+  Bei den 10-Jahres-Direktkrediten wird bei jeder Fälligkeit der eingestellte Anteil
+  (Standard 50 %) durch neue Direktkredite ersetzt; nur der Rest wird zurückgezahlt.
 - **Mitgliederdarlehen**: Zinsen werden gutgeschrieben (Zinseszins), Rückzahlung samt
   Zinsen am Ende der Laufzeit (Standard 15 Jahre, einstellbar unter „Erweitert“). Die
   Rückzahlung kommt wahlweise aus dem Konto (mit Rückständen, s. u.), aus einem neuen
@@ -73,7 +76,7 @@ dazu Rückzahlungen fälliger Direkt- und Mitgliederdarlehen und die Verwendung 
 - **Feste Darlehensarten**: Direktkredite mit 5 und 10 Jahren, Mitgliederdarlehen mit
   einstellbarer Laufzeit, ein Bank- und ein Förderdarlehen. Darlehen werden nicht vorzeitig gekündigt,
   und nach Fälligkeit wird kein Ersatz aufgenommen, außer der wählbaren Ablösung der
-  Mitgliederdarlehen.
+  Mitgliederdarlehen und dem Neueinwerben der 10-Jahres-Direktkredite.
 - **Erwartungswerte**: Abgesehen von der Unsicherheitsseite wird mit festen Werten
   gerechnet; Leerstand, Zinsänderungen und Inflation sind Annahmen, keine Prognosen.
 - **Rechtsform** wird nicht unterschieden; ihre Wirkung (z. B. höhere Verwaltungskosten in

@@ -27,13 +27,15 @@ overschot.
 - **Huurinkomsten**: huur per persoon × personen × 12, min huurderving (in de eerste drie
   jaar een eigen, meestal hoger percentage). De huur stijgt met de inflatie.
 - **Exploitatiekosten**: storting in de onderhoudsreserve, beheer, verzekering en bij
-  erfpacht (Erbbaurecht) de erfpachtcanon (Erbbauzins); alle stijgen met de inflatie. Het
-  werkelijke onderhoud wordt uit de reserve betaald, een aparte pot buiten de rekening.
+  erfpacht (Erbbaurecht) de erfpachtcanon (Erbbauzins); alle stijgen met de inflatie. De
+  storting is een vast deel van de herbouwwaarde (60 % van huis plus renovatie, zonder
+  grond) en wordt in hetzelfde jaar aan onderhoud besteed.
 - **Bank**: annuïteit of lineaire aflossing over de gekozen looptijd; na de rentevaste
   periode van 10 jaar geldt de nieuwe rente.
 - **Subsidielening**: annuïteit met vaste rente.
 - **Directe leningen**: jaarlijks rente, terugbetaling aan het einde van de looptijd (5 of
-  10 jaar).
+  10 jaar). Bij de directe leningen van 10 jaar wordt op elke vervaldatum het ingestelde deel
+  (standaard 50 %) door nieuwe directe leningen vervangen; alleen de rest wordt terugbetaald.
 - **Ledenleningen**: de rente wordt bijgeschreven (samengestelde rente), terugbetaling
   inclusief rente aan het einde van de looptijd (standaard 15 jaar, instelbaar onder
   „Uitgebreid”). De terugbetaling komt naar keuze van de rekening (met achterstanden, zie
@@ -76,7 +78,8 @@ overschot.
 - **Vaste soorten leningen**: directe leningen van 5 en 10 jaar, ledenleningen met
   instelbare looptijd, één banklening en één subsidielening. Leningen worden niet vervroegd
   opgezegd en na de vervaldatum wordt geen vervanging opgenomen, behalve de optionele
-  herfinanciering van de ledenleningen.
+  herfinanciering van de ledenleningen en het opnieuw ophalen van de directe leningen van
+  10 jaar.
 - **Verwachtingswaarden**: behalve op de onzekerheidspagina wordt met vaste waarden
   gerekend; leegstand, renteveranderingen en inflatie zijn aannames, geen voorspellingen.
 - **Rechtsvorm** wordt niet onderscheiden; het effect ervan (bijv. hogere beheerkosten bij

@@ -72,6 +72,8 @@ def tranche_schedule(tr: Tranche, horizon: int) -> TrancheSchedule:
     """
     if tr.interest_mode == "accrued" and tr.repayment in ("annuity", "linear"):
         raise ValueError(f"{tr.name}: accrued interest needs repayment 'bullet' or 'none'")
+    if not 0 <= tr.rollover_rate <= 1:
+        raise ValueError(f"{tr.name}: rollover_rate must be within 0..1")
     n = horizon + 1
     s = TrancheSchedule(*(np.zeros(n) for _ in range(5)))
     d = tr.drawdown_year
@@ -113,6 +115,9 @@ def tranche_schedule(tr: Tranche, horizon: int) -> TrancheSchedule:
                     repay = min(pay - interest, b)
             elif tr.repayment == "linear":
                 repay = min(principal / n_amort, b)
+            elif tr.repayment == "bullet" and tr.rollover_rate:
+                if years_in % tr.term_years == 0:
+                    repay = b * (1 - tr.rollover_rate)
             elif tr.repayment == "bullet" and years_in >= tr.term_years:
                 repay = b
         b -= repay

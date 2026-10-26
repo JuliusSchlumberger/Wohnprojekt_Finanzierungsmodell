@@ -38,7 +38,7 @@ def test_senior_loans_fully_repaid_within_horizon():
 def test_opening_liquidity_is_six_months_rent_financed_by_bank():
     s = example_scenario()
     res = simulate(s, RENT)
-    reserve = 0.5 * RENT * s.persons * 12 * (1 + s.operations.inflation)
+    reserve = 0.5 * RENT * s.persons * 12
     assert res.metrics["opening_liquidity"] == pytest.approx(reserve)
     sources = sum(df.balance.iloc[0] for df in res.tranches.values())
     assert sources == pytest.approx(s.property.total_investment + reserve)

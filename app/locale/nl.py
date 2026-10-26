@@ -109,7 +109,6 @@ zit.
     "label.maintenance_reserve_pct": "Onderhoudsreserve (%)",
     "label.vacancy_pct": "Huurderving (%)",
     "label.initial_vacancy_pct": "Huurderving eerste 3 jaar (%)",
-    "label.maintenance_rate_pct": "Onderhoud (%)",
     "label.admin_cost_per_year": "Beheer per jaar (€)",
     "label.insurance_per_year": "Verzekering per jaar (€)",
     "label.min_liquidity_months": "Minimale reserve (maandhuren)",
@@ -219,10 +218,6 @@ zit.
     "info.initial_vacancy_pct": (
         "Huurderving in de eerste 3 jaar, zolang het huis nog wordt betrokken en gerenoveerd."
     ),
-    "info.maintenance_rate_pct": (
-        "Wat het lopende onderhoud werkelijk kost, in % van de herbouwwaarde per jaar. Wordt "
-        "uit de onderhoudsreserve betaald."
-    ),
     "info.admin_cost_per_year": (
         "Beheer, boekhouding, controle (bij een coöperatie de controlerende federatie), "
         "bankkosten. Stijgt met de inflatie."
@@ -255,10 +250,8 @@ zit.
         "Looptijd van de subsidieleningen; ze worden als annuïteit afgelost."
     ),
     "info.maintenance_reserve_pct": (
-        "Dit deel van de herbouwwaarde gaat elk jaar naar de onderhoudsreserve, stijgend met "
-        "de inflatie. Daaruit wordt het lopende onderhoud (standaard 1,5 %, onder "
-        "„Uitgebreid”) betaald; de rest wordt gespaard voor groter werk. De reserve is een "
-        "aparte pot en telt niet mee als liquiditeit."
+        "Dit deel van de herbouwwaarde (60 % van huis plus renovatie, zonder grond) wordt "
+        "elk jaar opzij gezet en aan onderhoud besteed, stijgend met de inflatie."
     ),
     "info.member_type": (
         "Voorinstellingen voor inleg en ledenlening van dit lid. „Eigen waarden” laat de "
@@ -816,4 +809,17 @@ Hoe sterk elke onzekere aanname samenhangt met de benodigde huur (rangcorrelatie
     "chart.tranche.bank_refinance": "Banklening voor ledenleningen",
     "chart.tranche.direct_loans_refinance": "Directe leningen voor ledenleningen",
     "chart.costs.refinancing": "Nieuwe lening voor ledenleningen (instroom)",
+    # Direct loan rollover
+    "label.direct_loan_rollover_pct": "Vervangen bij vervaldatum (10 jr.)",
+    "info.direct_loan_rollover_pct": (
+        "Welk deel van de directe leningen van 10 jaar elke 10 jaar door nieuwe directe "
+        "leningen wordt vervangen; alleen de rest wordt van de rekening terugbetaald. 0 % "
+        "betekent: alles wordt afgelost. Geldt ook voor directe leningen die de ledenleningen"
+        " aflossen. Directe leningen van 5 jaar worden altijd afgelost."
+    ),
+    "option.direct_loan_rollover_pct.0": "0 %",
+    "option.direct_loan_rollover_pct.25": "25 %",
+    "option.direct_loan_rollover_pct.50": "50 %",
+    "option.direct_loan_rollover_pct.75": "75 %",
+    "option.direct_loan_rollover_pct.100": "100 %",
 }

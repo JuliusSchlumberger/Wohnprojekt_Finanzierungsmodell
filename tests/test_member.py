@@ -18,7 +18,8 @@ def test_alternative_grows_at_real_alternative_return(project):
     s, res = project
     view = member_view(s, res, MemberInputs(alt_return=0.05))
     growth = view["alternative"].iloc[1:].to_numpy() / view["alternative"].iloc[:-1].to_numpy()
-    np.testing.assert_allclose(growth, 1.05 / (1 + s.operations.inflation))
+    cidx = res.table["cost_index"].loc[view.index].to_numpy()
+    np.testing.assert_allclose(growth, 1.05 / (cidx[1:] / cidx[:-1]))
 
 
 def test_default_path_lacks_only_the_equity_while_member_stays(project):

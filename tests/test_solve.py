@@ -167,24 +167,24 @@ def test_advanced_inputs_that_add_cost_raise_required_rent(change):
     )
 
 
-def test_actual_maintenance_is_spent_from_reserve_without_changing_rent():
-    cheap = build_scenario(ProjectInputs(maintenance_rate=0.010))
-    dear = build_scenario(ProjectInputs(maintenance_rate=0.019))
-    assert required_rent(cheap) == required_rent(dear)
-    pot = {
-        k: simulate(s, required_rent(s)).table.maintenance_reserve.iloc[-1]
-        for k, s in (("cheap", cheap), ("dear", dear))
-    }
-    assert pot["cheap"] > pot["dear"]
+def test_app_maintenance_is_spent_as_it_is_put_aside():
+    s = build_scenario(ProjectInputs())
+    assert not simulate(s, required_rent(s)).table.maintenance_reserve.any()
+
+
+def test_land_is_not_part_of_the_replacement_value():
+    cheap_land = build_scenario(ProjectInputs(land_price=100_000.0))
+    dear_land = build_scenario(ProjectInputs(land_price=900_000.0))
+    assert cheap_land.property.replacement_value == pytest.approx(
+        dear_land.property.replacement_value
+    )
 
 
 def test_binding_year_is_where_a_slightly_lower_rent_fails():
     from model.solve import binding_year
 
-    s = build_scenario(ProjectInputs())
-    rent = required_rent(s)
-    year, reason = binding_year(s, rent)
-    assert (year, reason) == (1, "reserve")
+    no_member_loans = build_scenario(ProjectInputs(member_loans=0.0))
+    assert binding_year(no_member_loans, required_rent(no_member_loans)) == (1, "reserve")
     late = build_scenario(ProjectInputs(member_loan_term_years=10))
     assert binding_year(late, required_rent(late))[1] == "arrears"
 

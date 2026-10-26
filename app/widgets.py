@@ -31,6 +31,7 @@ OPTIONS = {
     "tenure": {"purchase": "purchase", "leasehold": "leasehold"},
     "bank_repayment": {"annuity": "annuity", "linear": "linear"},
     "bank_rate_change": {-1: "down", 0: "same", 1: "up"},
+    "direct_loan_rollover_pct": {v: str(v) for v in (0, 25, 50, 75, 100)},
     "surplus_use": {
         "rent_reduction": "rent_reduction",
         "payout_15y": "payout_15y",
@@ -67,6 +68,7 @@ WIDGETS = {
     "direct_loan_spread_5y_pp": _SLIDER,
     "direct_loans_10y": _EUR,
     "direct_loan_spread_10y_pp": _SLIDER,
+    "direct_loan_rollover_pct": _RADIO,
     "subsidy": _EUR,
     "bank_spread_pp": _SLIDER,
     "bank_repayment": _RADIO,
@@ -77,7 +79,6 @@ WIDGETS = {
     "min_equity_like_pct": _SLIDER,
     "target_rent": {"type": pn.widgets.FloatSlider, "step": 10},
     "maintenance_reserve_pct": _SLIDER,
-    "maintenance_rate_pct": _SLIDER,
     "admin_cost_per_year": _EUR_PERSON,
     "insurance_per_year": _EUR_PERSON,
     "min_liquidity_months": _SLIDER,
@@ -120,6 +121,7 @@ SECTIONS = {
         "direct_loan_spread_5y_pp",
         "direct_loans_10y",
         "direct_loan_spread_10y_pp",
+        "direct_loan_rollover_pct",
     ],
     "bank": [
         "subsidy",
@@ -134,7 +136,7 @@ SECTIONS = {
 }
 
 ADVANCED_SECTIONS = {
-    "adv_operations": ["admin_cost_per_year", "insurance_per_year", "maintenance_rate_pct"],
+    "adv_operations": ["admin_cost_per_year", "insurance_per_year"],
     "adv_liquidity": ["min_liquidity_months", "max_arrears_years"],
     "adv_purchase": ["ancillary_cost_pct", "leasehold_rate_pct"],
     "adv_subsidy": ["subsidy_spread_pp", "subsidy_term_years"],
@@ -162,6 +164,10 @@ class Inputs(param.Parameterized):
         _spread(_D.direct_loan_rate_5y), bounds=(-2, 5), step=0.1
     )
     direct_loans_10y = param.Number(_D.direct_loans_10y, bounds=(0, None))
+    direct_loan_rollover_pct = param.Selector(
+        objects=list(OPTIONS["direct_loan_rollover_pct"]),
+        default=round(100 * _D.direct_loan_rollover_rate),
+    )
     direct_loan_spread_10y_pp = param.Number(
         _spread(_D.direct_loan_rate_10y), bounds=(-2, 5), step=0.1
     )
@@ -181,7 +187,6 @@ class Inputs(param.Parameterized):
     )
     vacancy_pct = param.Number(100 * _D.vacancy_rate, bounds=(0, 15), step=0.5)
     initial_vacancy_pct = param.Number(100 * _D.initial_vacancy_rate, bounds=(0, 50), step=1)
-    maintenance_rate_pct = param.Number(100 * _D.maintenance_rate, bounds=(0.5, 3), step=0.1)
     admin_cost_per_year = param.Number(_D.admin_cost_per_year, bounds=(0, None))
     insurance_per_year = param.Number(_D.insurance_per_year, bounds=(0, None))
     min_liquidity_months = param.Number(_D.min_liquidity_months, bounds=(1, 12), step=1)
@@ -242,6 +247,7 @@ class Inputs(param.Parameterized):
             direct_loan_rate_5y=self._nominal(self.direct_loan_spread_5y_pp),
             direct_loans_10y=self.direct_loans_10y,
             direct_loan_rate_10y=self._nominal(self.direct_loan_spread_10y_pp),
+            direct_loan_rollover_rate=self.direct_loan_rollover_pct / 100,
             subsidy=self.subsidy,
             bank_rate=self._nominal(self.bank_spread_pp),
             bank_repayment=self.bank_repayment,
@@ -250,7 +256,6 @@ class Inputs(param.Parameterized):
             inflation=self.inflation_pct / 100,
             maintenance_reserve_rate=self.maintenance_reserve_pct / 100,
             vacancy_rate=self.vacancy_pct / 100,
-            maintenance_rate=self.maintenance_rate_pct / 100,
             admin_cost_per_year=self.admin_cost_per_year,
             insurance_per_year=self.insurance_per_year,
             min_liquidity_months=self.min_liquidity_months,

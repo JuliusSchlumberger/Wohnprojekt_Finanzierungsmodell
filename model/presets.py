@@ -24,15 +24,17 @@ class ProjectInputs:
     which the ground rent is charged. Direct loans run 5 or 10 years with
     yearly interest, member loans `member_loan_term_years` with accrued interest; all are
     repaid at term; repayments that would push liquidity below the reserve
-    are deferred and paid as soon as possible, within `max_arrears_years`. Maintenance is
-    paid from a reserve fed with `maintenance_reserve_rate` of the replacement
-    value. Once no arrears are open, liquidity above reserve plus all
+    are deferred and paid as soon as possible, within `max_arrears_years`. Maintenance
+    costs `maintenance_reserve_rate` of the replacement value each year, put aside
+    and spent in the same year. Once no arrears are open, liquidity above reserve plus all
     outstanding direct and member loans goes to the A4 use. The first 3
     operating years carry `initial_vacancy_rate` instead of `vacancy_rate`.
     `member_loan_payoff` decides how member loans are repaid when due: from
     liquidity (with the arrears rule), or by a new bank loan (follow-up rate,
     remaining bank term, at least 10 years) or new 10-year direct loans that
     take up the full amount due at the end of the maturity year.
+    At each maturity of 10-year direct loans `direct_loan_rollover_rate` of
+    the balance is re-lent for another 10 years; 5-year loans are repaid.
     `bank_rate_change` counts steps of `BANK_RATE_CHANGE_STEP` (the app offers -1, 0, +1)
     applied after the 10-year fixed-rate period.
     """
@@ -52,6 +54,7 @@ class ProjectInputs:
     direct_loan_rate_5y: float = 0.025
     direct_loans_10y: float = 150_000.0
     direct_loan_rate_10y: float = 0.04
+    direct_loan_rollover_rate: float = 0.5
     subsidy: float = 0.0
     bank_rate: float = 0.06
     bank_repayment: Literal["annuity", "linear"] = "annuity"
@@ -62,7 +65,6 @@ class ProjectInputs:
     initial_vacancy_rate: float = 0.20
     maintenance_reserve_rate: float = 0.02
     surplus_use: SurplusUse = "rent_reduction"
-    maintenance_rate: float = 0.015
     admin_cost_per_year: float = 4_000.0
     insurance_per_year: float = 2_500.0
     min_liquidity_months: float = 6.0
@@ -148,6 +150,7 @@ def build_scenario(p: ProjectInputs) -> Scenario:
             interest_rate=p.direct_loan_rate_10y,
             repayment="bullet",
             term_years=10,
+            rollover_rate=p.direct_loan_rollover_rate,
         ),
     ]
     senior = [
@@ -177,10 +180,9 @@ def build_scenario(p: ProjectInputs) -> Scenario:
         tranches=[tr for tr in subordinated if tr.amount] + senior + refinancing,
         operations=Operations(
             inflation=p.inflation,
-            maintenance_reserve_rate=p.maintenance_reserve_rate,
             vacancy_rate=p.vacancy_rate,
             initial_vacancy_rate=p.initial_vacancy_rate,
-            maintenance_rate=p.maintenance_rate,
+            maintenance_rate=p.maintenance_reserve_rate,
             admin_cost_per_year=p.admin_cost_per_year,
             insurance_per_year=p.insurance_per_year,
             min_liquidity_months=p.min_liquidity_months,
@@ -221,6 +223,7 @@ def _member_loan_refinancing(p: ProjectInputs) -> list[Tranche]:
             interest_rate=p.direct_loan_rate_10y,
             repayment="bullet",
             term_years=10,
+            rollover_rate=p.direct_loan_rollover_rate,
             **timing,
         )
     ]

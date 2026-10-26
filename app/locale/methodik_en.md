@@ -26,11 +26,14 @@ plus repayments of direct and member loans falling due and the use of the surplu
   higher rate in the first three years). The rent rises with inflation.
 - **Running costs**: contribution to the maintenance reserve, administration, insurance and,
   under a ground lease (Erbbaurecht), the ground rent (Erbbauzins); all rise with inflation.
-  Actual maintenance is paid from the reserve, a separate pot outside the account.
+  The contribution is a fixed share of the reconstruction value (60 % of house plus
+  renovation, without the land) and is spent on maintenance in the same year.
 - **Bank**: annuity or linear repayment over the chosen term; after the 10-year fixed-rate
   period the follow-up rate applies.
 - **Subsidised loan**: annuity with a fixed rate.
 - **Direct loans**: interest every year, repayment at the end of the term (5 or 10 years).
+  For the 10-year direct loans the chosen share (default 50 %) is replaced by new direct
+  loans at every maturity; only the rest is repaid.
 - **Member loans**: interest is added to the loan (compound interest), repayment including
   interest at the end of the term (default 15 years, adjustable under “Advanced”). The
   repayment comes either from the account (with arrears, see below), from a new bank loan
@@ -70,7 +73,8 @@ plus repayments of direct and member loans falling due and the use of the surplu
   mode 2 looks at a single member who does not affect the project financing.
 - **Fixed loan types**: direct loans with 5 and 10 years, member loans with an adjustable
   term, one bank and one subsidised loan. Loans are not cancelled early, and no replacement
-  is taken up after maturity, except the optional refinancing of the member loans.
+  is taken up after maturity, except the optional refinancing of the member loans and the
+  re-raising of the 10-year direct loans.
 - **Expected values**: apart from the uncertainty page, fixed values are used; vacancy,
   interest changes and inflation are assumptions, not forecasts.
 - **Legal form** is not distinguished; its effect (e.g. higher administration costs in a

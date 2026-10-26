@@ -17,7 +17,8 @@
 ## Conventions
 
 - Year index t: 0 = opening state (investment financed, opening liquidity), 1..T operating years.
-- Rent input is EUR per person per month in year 1, inflation-indexed afterwards.
+- Amounts entered for year 1 (rent, running costs) are paid in year 1 (index 1.00), indexed
+  from year 2.
 - Opening liquidity defaults to `min_liquidity_months` of year-1 rent, financed by the
   residual tranche (normally the bank loan).
 - Bank and subsidy loans are "senior"; the A4 surplus rule applies after they are repaid.
@@ -26,6 +27,7 @@
 
 ## Baselines
 
-- `required_rent(example_scenario())` = 558.76 EUR per person (11.18 per total m2).
-- `required_rent(build_scenario(ProjectInputs()))` = 903.55 EUR per person (app defaults).
+- `required_rent(example_scenario())` = 546.31 EUR per person.
+- `required_rent(build_scenario(ProjectInputs()))` = 882.64 EUR per person (app defaults;
+  deciding year 1, reserve).
 - trias reference case: all 12 series equal to machine precision, years 1-30.

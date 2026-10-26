@@ -16,8 +16,9 @@ class Property:
     """House and land; under leasehold the land share is rented, not bought.
 
     `ancillary_cost_rate` applies to the purchased part of the price.
-    `replacement_value_ratio` scales purchase price plus renovation to the
-    rebuild value on which maintenance is charged.
+    `replacement_value_ratio` scales the building part of the price plus
+    renovation to the rebuild value on which maintenance is charged; land is
+    not rebuilt.
     """
 
     purchase_price: float = 1_800_000.0
@@ -47,7 +48,8 @@ class Property:
 
     @property
     def replacement_value(self) -> float:
-        return self.replacement_value_ratio * (self.purchase_price + self.renovation_cost)
+        building = self.purchase_price - self.ground_value
+        return self.replacement_value_ratio * (building + self.renovation_cost)
 
 
 @dataclass
@@ -62,7 +64,9 @@ class Tranche:
     (investment plus initial reserve minus all other sources); its `amount`
     is ignored. With `initial_repayment_rate` set, an annuity loan's term is
     implied by rate plus initial repayment ("3.8 % / 2 % Tilgung") and
-    `term_years` is ignored.
+    `term_years` is ignored. A bullet loan with `rollover_rate` is re-lent at
+    each maturity: that share of the balance runs another term, only the rest
+    is repaid.
     """
 
     name: str
@@ -80,6 +84,7 @@ class Tranche:
     interest_mode: InterestMode = "paid"
     churn_rate: float = 0.0
     replacement_rate: float = 1.0
+    rollover_rate: float = 0.0
     subsidy_grant: float = 0.0
     residual: bool = False
 
@@ -95,7 +100,8 @@ class Operations:
     """Running costs, inflation and liquidity rules.
 
     Costs are inflation-indexed. The index is 1 before
-    `indexation_start_year` and (1 + inflation)^k in the k-th indexed year.
+    `indexation_start_year` and (1 + inflation)^k in the k-th indexed year;
+    the default 2 makes amounts entered for year 1 the amounts paid in year 1.
     `start_liquidity=None` sets the opening balance to `min_liquidity_months`
     of first-year gross rent, financed through the residual tranche.
     `initial_vacancy_rate`, if set, replaces `vacancy_rate` in the first
@@ -115,7 +121,7 @@ class Operations:
     initial_vacancy_years: int = 3
     community_cost_per_year: float = 0.0
     inflation: float = 0.02
-    indexation_start_year: int = 1
+    indexation_start_year: int = 2
     rent_mode: Literal["indexed", "fixed"] = "indexed"
     min_liquidity_months: float = 6.0
     start_liquidity: float | None = None

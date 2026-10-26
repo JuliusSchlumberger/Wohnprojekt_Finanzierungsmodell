@@ -114,3 +114,16 @@ def test_year_end_drawdown_starts_service_the_following_year():
     assert s.inflow[5] == P and s.balance[5] == P
     assert s.interest[5] == 0 and s.interest[6] == pytest.approx(P * R)
     assert s.balance[5 + N] == pytest.approx(0, abs=1e-6)
+
+
+def test_rollover_repays_the_unrenewed_share_at_every_maturity():
+    tr = Tranche("d", "direct_loan", P, 0.04, repayment="bullet", term_years=10, rollover_rate=0.5)
+    s = tranche_schedule(tr, horizon=30)
+    np.testing.assert_allclose(s.repayment[[10, 20, 30]], [P / 2, P / 4, P / 8])
+    assert s.repayment.sum() == pytest.approx(P - s.balance[30])
+    np.testing.assert_allclose(s.interest_paid[1:], 0.04 * s.balance[:-1])
+
+
+def test_rollover_rate_outside_unit_interval_is_rejected():
+    with pytest.raises(ValueError, match="rollover_rate"):
+        tranche_schedule(Tranche("d", "direct_loan", P, 0.04, "bullet", 10, rollover_rate=1.5), 5)
