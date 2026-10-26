@@ -62,10 +62,14 @@ dazu Rückzahlungen fälliger Direkt- und Mitgliederdarlehen und die Verwendung 
 - **Modus 3, Zielmiete**: die größte Gesamtinvestition, die eine Zielmiete trägt, begrenzt
   durch die Eigenkapitalanforderung der Bank. Grundstück, Haus und Sanierung werden dafür
   im Verhältnis der Kostenschätzung skaliert.
-- **Unsicherheit**: Für acht Eingaben mit Spanne werden Varianten gezogen
-  (Latin-Hypercube, Dreiecksverteilung mit dem aktuellen Wert als wahrscheinlichstem) und je
-  die erforderliche Miete gesucht, auf 50 Cent genau. Die Zinssätze bewegen sich mit der
-  gezogenen Inflation, ihr Abstand zur Inflation bleibt gleich.
+- **Unsicherheit**: eine feste Sensitivitätsanalyse. Acht Annahmen (Bankzins und seine
+  Änderung nach 10 Jahren, Mietausfall, Umfang, Zins und Laufzeit der Mitgliederdarlehen,
+  Umfang und Zins der 10-Jahres-Direktkredite) werden in 1.000.000 Varianten gleichverteilt
+  gezogen (Latin-Hypercube), alle anderen Eingaben bleiben auf den Standardwerten. Varianten
+  unter der Eigenkapitalanforderung der Bank werden ausgeschlossen. Je Variante wird die
+  erforderliche Miete auf 50 Cent genau gesucht; ausgewertet werden Varianzanteile (linear
+  und insgesamt), die Miete je Annahme mit niedrigster erreichbarer Miete (Pareto-Front),
+  Paare von Annahmen und die Annahmen der günstigsten 5 %.
 
 ## Grenzen des Modells
 
@@ -77,7 +81,7 @@ dazu Rückzahlungen fälliger Direkt- und Mitgliederdarlehen und die Verwendung 
   einstellbarer Laufzeit, ein Bank- und ein Förderdarlehen. Darlehen werden nicht vorzeitig gekündigt,
   und nach Fälligkeit wird kein Ersatz aufgenommen, außer der wählbaren Ablösung der
   Mitgliederdarlehen und dem Neueinwerben der 10-Jahres-Direktkredite.
-- **Erwartungswerte**: Abgesehen von der Unsicherheitsseite wird mit festen Werten
+- **Erwartungswerte**: Abgesehen von der Sensitivitätsanalyse wird mit festen Werten
   gerechnet; Leerstand, Zinsänderungen und Inflation sind Annahmen, keine Prognosen.
 - **Rechtsform** wird nicht unterschieden; ihre Wirkung (z. B. höhere Verwaltungskosten in
   einer eG) lässt sich über die Eingaben abbilden.

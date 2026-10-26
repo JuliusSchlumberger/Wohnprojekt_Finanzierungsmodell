@@ -51,7 +51,7 @@ class ProjectInputs:
     member_loan_term_years: int = 15
     member_loan_payoff: MemberLoanPayoff = "liquidity"
     direct_loans_5y: float = 50_000.0
-    direct_loan_rate_5y: float = 0.025
+    direct_loan_rate_5y: float = 0.03
     direct_loans_10y: float = 150_000.0
     direct_loan_rate_10y: float = 0.04
     direct_loan_rollover_rate: float = 0.5
@@ -62,7 +62,7 @@ class ProjectInputs:
     bank_rate_change: float = 1
     inflation: float = 0.02
     vacancy_rate: float = 0.04
-    initial_vacancy_rate: float = 0.20
+    initial_vacancy_rate: float = 0.10
     maintenance_reserve_rate: float = 0.02
     surplus_use: SurplusUse = "rent_reduction"
     admin_cost_per_year: float = 4_000.0

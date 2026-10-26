@@ -6,11 +6,13 @@
 - Env: `conda env create -f environment.yml` → env `wohnprojekt` (Python 3.12).
 - Entry points: `model.simulate(scenario, rent_per_person)`, `model.required_rent(scenario)`,
   `model.max_investment(...)`, `model.member.member_view(...)`,
-  `model.uncertainty.rent_uncertainty(ProjectInputs(), Ranges(), n)`,
+  `model.exploration.explore(...)` / `summarize(...)` (sensitivity report data),
   `model.presets.example_scenario()`, `model.presets.build_scenario(ProjectInputs())` (app inputs).
 - Commands (from repo root, env active): `pytest` (all, ~2 s), `pytest -m "not reference"`,
   `ruff check . && ruff format --check .`, `python scripts/build_site.py --out site`
-  (browser build; CI does the same and publishes to GitHub Pages).
+  (browser build; CI does the same and publishes to GitHub Pages),
+  `python scripts/explore_rent.py` (regenerates `app/data/exploration.json`, ~10-15 min on
+  14 cores; needed after any change to defaults or model; a test checks the defaults).
 - Protected: `reference/Finanzplan_Wohnprojekte_Stiftung_trias.xlsx` (original template),
   `reference/trias_reference_case.xlsx` (regenerate only via `reference/fill_trias.ps1`).
 
@@ -28,6 +30,6 @@
 ## Baselines
 
 - `required_rent(example_scenario())` = 546.31 EUR per person.
-- `required_rent(build_scenario(ProjectInputs()))` = 882.64 EUR per person (app defaults;
-  deciding year 1, reserve).
+- `required_rent(build_scenario(ProjectInputs()))` = 861.05 EUR per person (app defaults;
+  deciding year 18, member-loan arrears).
 - trias reference case: all 12 series equal to machine precision, years 1-30.

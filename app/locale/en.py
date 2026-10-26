@@ -120,12 +120,6 @@ pages at once. The **?** next to a field or a key figure explains what is behind
     "label.entry_year": "Moving in (year)",
     "label.exit_year": "Moving out (year)",
     "label.market_rent": "Market rent per person (€/month)",
-    "label.inflation_range": "Inflation (%)",
-    "label.bank_change_range": "Bank interest after 10 y. (± pp)",
-    "label.vacancy_range": "Rent loss (%)",
-    "label.renovation_range": "Renovation (% of estimate)",
-    "label.running_range": "Administration, insurance (%)",
-    "label.n_samples": "Number of variants",
     # Options of choice inputs
     "option.tenure.purchase": "Purchase",
     "option.tenure.leasehold": "Ground lease",
@@ -268,23 +262,6 @@ pages at once. The **?** next to a field or a key figure explains what is behind
         "− member shares − member loans − direct loans − subsidised loans. Because the opening "
         "liquidity depends on the rent, it is calculated together with the rent."
     ),
-    "info.inflation_range": "Range of yearly inflation. Most likely value: start page.",
-    "info.bank_change_range": (
-        "Change of the bank rate after the fixed-rate period (10 years), in percentage points. "
-        "Most likely value: the choice on the start page (falls −1, stays 0, rises +1)."
-    ),
-    "info.vacancy_range": "Range of rent loss from year 4. Most likely value: start page.",
-    "info.renovation_range": (
-        "Renovation costs in % of your estimate. 130 % means: renovation is 30 % more "
-        "expensive. Most likely value: 100 %."
-    ),
-    "info.running_range": (
-        "Administration and insurance in % of your estimate. Most likely value: 100 %."
-    ),
-    "info.n_samples": (
-        "More variants make the result more stable but take longer (in the browser about "
-        "2.5 seconds per 100 variants)."
-    ),
     # Summaries under input boxes
     "summary.costs": "Purchase costs ({rate}): **{ancillary}**  \nTotal investment: **{total}**",
     "summary.costs_unknown": "Total investment: –",
@@ -386,17 +363,6 @@ proportion to your cost estimate. Two limits decide how expensive the house may 
 
 The admissible investment is the smaller of the two limits.
 """,
-    "method.uncertainty": """
-You do not know many assumptions exactly today. Here you give a range for the five most
-important ones. The calculator draws many variants from them (Latin hypercube sample) and
-finds the required rent for each as in mode 1, to 50 cents.
-
-- Within each range the value from the start page is the **most likely**; values towards
-  the edges become rarer (triangular distribution).
-- The **safe rent** is the rent that is enough in 90 % of the variants.
-- All other assumptions come unchanged from the start page.
-- The same inputs always give the same result (fixed random seed).
-""",
     # Chart reading guides
     "help.annual_costs": """
 Each bar shows what the project spends money on in a year; the black line is rent income
@@ -468,38 +434,6 @@ The member's wealth over time, adjusted for inflation.
 - **Dashed**: if the share and loan were lost, e.g. in an insolvency. If this line is also
   above the comparison, the project pays off even then.
 """,
-    "help.rent_distribution": """
-Each bar counts how many variants have a required rent in that range.
-
-- **Dotted**: the rent from mode 1, with the values of the start page.
-- **Solid**: the median; half of the variants need less, half need more.
-- **Dashed**: the safe rent. Only 10 % of the variants need more.
-
-The wider the distribution, the more the rent depends on assumptions you do not know
-today. A gap between the mode 1 rent and the safe rent is a buffer you can plan for.
-""",
-    "help.headroom_band": """
-How much money lies on the account above the minimum reserve if you charge the safe rent,
-adjusted for inflation.
-
-- **Line**: median over all variants.
-- **Band**: 80 % of the variants lie inside it (between the 10th and 90th percentile).
-- The buffer is at most this high in each year until the surplus is taken out; after that
-  it is close to zero.
-
-If the lower edge of the band is below zero, some variants fall below the reserve in that
-year. Those are the 10 % for which the safe rent is not enough.
-""",
-    "help.sensitivity": """
-How strongly each uncertain assumption is related to the required rent (rank correlation,
-−1 to +1).
-
-- **Positive** (blue): if the assumption is higher, the rent rises, e.g. higher renovation
-  costs.
-- **Negative** (red): if the assumption is higher, the rent falls. For inflation that is
-  because the rent grows with inflation while interest and repayment do not.
-- The longer the bar, the more it pays to pin down this assumption.
-""",
     # Mode 1 KPIs
     "kpi.required_rent.label": "Required rent",
     "kpi.required_rent.help": (
@@ -507,6 +441,7 @@ How strongly each uncertain assumption is related to the required rent (rank cor
         "reserve in all 50 years and every arrear is settled within {years} years. It rises "
         "with inflation afterwards."
     ),
+    "kpi.from_mode1": "from mode 1",
     "kpi.per_person_month": "per person and month",
     "kpi.rent_income.label": "Rent income year 1",
     "kpi.rent_income.help": "Rent of all persons in the first year, before rent loss.",
@@ -545,7 +480,6 @@ How strongly each uncertain assumption is related to the required rent (rank cor
     # Mode 2 KPIs
     "kpi.project_rent.label": "Project rent",
     "kpi.project_rent.help": "Required rent from mode 1, per person and month in the first year.",
-    "kpi.from_mode1": "from mode 1",
     "kpi.saving.label": "Saving compared with market rent",
     "kpi.saving.help": (
         "Market rent minus project rent in the first year after moving in. Later the saving "
@@ -598,28 +532,6 @@ How strongly each uncertain assumption is related to the required rent (rank cor
     ),
     "kpi.bank_limit.none": "none",
     # Uncertainty page
-    "unc.ranges": "Ranges",
-    "unc.compute": "Calculate",
-    "unc.hint": "*Most likely value is always taken from the start page.*",
-    "unc.prompt": "Set the ranges and click “Calculate”.",
-    "unc.stale": "Assumptions have changed. The results below are out of date; please recalculate.",
-    "kpi.base.label": "Rent without uncertainty",
-    "kpi.base.help": "Required rent from mode 1, with the values of the start page.",
-    "kpi.median.label": "Median",
-    "kpi.median.help": "Half of the variants need less, half need more.",
-    "kpi.spread.label": "Range 10–90 %",
-    "kpi.spread.help": "80 % of the variants need a rent in this range.",
-    "kpi.safe.label": "Safe rent",
-    "kpi.safe.help": (
-        "Enough in 90 % of the variants. The gap to the rent without uncertainty is a buffer "
-        "for unfavourable developments."
-    ),
-    "kpi.safe.note": "{amount} above mode 1",
-    "kpi.failed.label": "Variants without a solution",
-    "kpi.failed.help": (
-        "In these variants no rent up to €5,000 per person is enough; they are left out of the "
-        "evaluation."
-    ),
     # Methodology page
     "methodik.inputs_heading": "## Inputs and defaults",
     "methodik.table_header": "| Section | Input | Default | Meaning |",
@@ -667,45 +579,7 @@ How strongly each uncertain assumption is related to the required rent (rank cor
     "chart.curve.x": "Target rent (€ per person/month)",
     "chart.curve.hover_rent": "Target rent",
     "chart.curve.hover_investment": "Investment",
-    "chart.uncertain.inflation": "Inflation",
-    "chart.uncertain.bank_rate_change_pp": "Bank interest after 10 years",
-    "chart.uncertain.vacancy_rate": "Rent loss",
-    "chart.uncertain.renovation_factor": "Renovation costs",
-    "chart.uncertain.running_cost_factor": "Administration and insurance",
-    "chart.dist.title": "Required rent across all variants",
-    "chart.dist.count": "Number of variants",
-    "chart.dist.base": "Without uncertainty",
-    "chart.dist.median": "Median",
-    "chart.dist.safe": "Safe rent (enough in 90 %)",
-    "chart.dist.x": "Required rent (€ per person/month)",
-    "chart.dist.hover_variants": "variants",
-    "chart.band.title": "Buffer above the minimum reserve at the safe rent",
-    "chart.band.p90": "90th percentile",
-    "chart.band.band": "10–90 % band",
-    "chart.band.median": "Median",
-    "chart.band.reserve": "Minimum reserve",
-    "chart.sens.title": "What drives the uncertainty?",
-    "chart.sens.y": "Rank correlation with rent",
-    "chart.sens.name": "Correlation",
     # Additional uncertain inputs
-    "label.member_loan_term_range": "Term member loans (years)",
-    "label.member_loan_range": "Member loans (% of plan)",
-    "label.direct_loans_10y_range": "Direct loans 10 y. (% of plan)",
-    "info.member_loan_term_range": (
-        "Range of the member loan term in whole years. Most likely value: start page (under "
-        "“Advanced”)."
-    ),
-    "info.member_loan_range": (
-        "How much member loans actually come together, in % of the planned amount. If money "
-        "is missing, the bank loan steps in. Most likely value: 100 %."
-    ),
-    "info.direct_loans_10y_range": (
-        "How much 10-year direct loans are actually raised, in % of the planned amount. If "
-        "money is missing, the bank loan steps in. Most likely value: 100 %."
-    ),
-    "chart.uncertain.member_loan_term_years": "Term member loans",
-    "chart.uncertain.member_loan_factor": "Amount of member loans",
-    "chart.uncertain.direct_loans_10y_factor": "Amount of 10-year direct loans",
     # Rates relative to inflation, member loan payoff, nominal display
     "label.member_loan_spread_pp": "Interest member loans (pp above inflation)",
     "label.direct_loan_spread_5y_pp": "Interest 5 years (pp above inflation)",
@@ -792,4 +666,149 @@ How strongly each uncertain assumption is related to the required rent (rank cor
     "option.direct_loan_rollover_pct.50": "50%",
     "option.direct_loan_rollover_pct.75": "75%",
     "option.direct_loan_rollover_pct.100": "100%",
+    # Sensitivity report page
+    "explore.title": "Sensitivity and uncertainty analysis",
+    "explore.intro": (
+        "How much does the required rent depend on assumptions that are still open today, and"
+        " which combinations make living affordable? {n} variants were calculated for this "
+        "(Monte Carlo with a Latin hypercube sample): eight assumptions were drawn together "
+        "within the ranges below, every value equally likely; all other inputs stay at their "
+        "defaults. {excluded} of the variants do not meet the bank's equity requirement "
+        "(equity plus subordinated loans below {min_share} of the total investment) and are "
+        "not evaluated, leaving {valid} variants.\n\nThis page is a fixed analysis: changes on "
+        "the start page do not affect it."
+    ),
+    "explore.ranges_title": "Varied assumptions",
+    "explore.ranges_note": (
+        "Investment = land + house + renovation. Interest rates as spread above 2 % "
+        "inflation. The default is the value on the start page; it can lie outside the range."
+    ),
+    "explore.col.parameter": "Assumption",
+    "explore.col.range": "Range",
+    "explore.col.default": "Default",
+    "explore.col.value": "Value",
+    "explore.kpi.base.label": "Rent with defaults",
+    "explore.kpi.base.help": "Required rent as in mode 1, with all defaults.",
+    "explore.kpi.median.label": "Median of all variants",
+    "explore.kpi.median.help": "Half of the variants need less, half need more.",
+    "explore.kpi.spread.label": "Middle 80 % of variants",
+    "explore.kpi.spread.help": (
+        "10 % of the variants lie below, 10 % above (10th to 90th percentile)."
+    ),
+    "explore.kpi.best.label": "Lowest rent found",
+    "explore.kpi.best.help": (
+        "The cheapest of all evaluated variants; its assumptions are listed under “Main results”."
+    ),
+    "explore.findings_title": "Main results",
+    "explore.finding.drivers": (
+        "The biggest levers are the **{first}** ({first_share} of the rent's spread) and the "
+        "**{second}** ({second_share}); together with the {third} they explain {top3_share} "
+        "(figure 1)."
+    ),
+    "explore.finding.linear_up": (
+        "The effect of the **{name}** is almost linear: the higher, the more expensive; across the "
+        "range {range} the median rent rises by {change}."
+    ),
+    "explore.finding.linear_down": (
+        "The effect of the **{name}** is almost linear: the higher, the cheaper; across the range "
+        "{range} the median rent falls by {change}."
+    ),
+    "explore.finding.nonlinear": (
+        "The effect of the **{name}** is non-linear: it depends on where in the range {range} "
+        "you are; the median is lowest around {best}, the two ends of the range differ by "
+        "{change} (figure 2)."
+    ),
+    "explore.finding.interactions": (
+        "About {share} of the spread only arises from several assumptions acting together "
+        "(figure 3)."
+    ),
+    "explore.finding.cheapest": (
+        "The cheapest 5 % of variants (rent up to {threshold}) typically have (median): "
+        "{profile} (figure 4)."
+    ),
+    "explore.finding.best": "The lowest rent ({rent}) came from: {profile}",
+    "label.explore_pair_x": "Horizontal assumption",
+    "label.explore_pair_y": "Vertical assumption",
+    "explore.pair_same": "Please choose two different assumptions.",
+    "explore.missing": (
+        "The analysis is missing. It is generated once with `python scripts/explore_rent.py`."
+    ),
+    "explore.limits_title": "Limits of the analysis",
+    "explore.limits": (
+        "- The ranges are assumptions, not forecasts; every value within them counts as "
+        "equally likely. The frequencies therefore say nothing about how likely a rent is, "
+        "only how much room the assumptions leave.\n- All other inputs stay at their defaults,"
+        " including inflation (2 %), initial vacancy and repaying the member loans from the "
+        "account.\n- Shown is the required starting rent per person and month (as in mode 1), "
+        "to 50 cents; later rent reductions from surpluses are not included.\n- The share of "
+        "the spread describes each assumption on its own; the rest up to 100 % comes from "
+        "interactions."
+    ),
+    "chart.explore.importance.title": "Figure 1: Which assumption moves the rent how much?",
+    "chart.explore.importance.linear": "linear part",
+    "chart.explore.importance.nonlinear": "non-linear part",
+    "chart.explore.importance.total": "total share",
+    "chart.explore.importance.x": "Share of the rent's spread",
+    "chart.explore.effects.title": "Figure 2: Rent depending on each single assumption",
+    "chart.explore.effects.band": "middle 80 % of variants",
+    "chart.explore.effects.p50": "median",
+    "chart.explore.effects.min": "lowest reachable rent (Pareto front)",
+    "chart.explore.pair.title": "Figure 3: Two assumptions acting together",
+    "chart.explore.pair.colorbar": "Median rent",
+    "chart.explore.cheapest.title": "Figure 4: How do the cheapest variants reach their rent?",
+    "chart.explore.cheapest.all": "all variants",
+    "chart.explore.cheapest.cheapest": "cheapest 5 %",
+    "help.explore.importance": (
+        "Each bar shows which share of the spread in the required rent this one assumption "
+        "explains (share of variance). Blue is the part a straight line explains; orange the "
+        "extra part from a curved relation. A large orange part means there is a best range "
+        "rather than “the more, the better”. Long bars are the assumptions most worth "
+        "negotiating or clarifying."
+    ),
+    "help.explore.effects": (
+        "One panel per assumption; horizontally its value, vertically the required rent of "
+        "all variants with that value. The line is the median, the band covers the middle 80 "
+        "%. The dotted line is the lowest rent reachable at that value at all, if the other "
+        "assumptions turn out well (Pareto front): it cannot get better at that value. A "
+        "straight line means a linear effect, a curve or a valley a non-linear one; a wide "
+        "band means the other assumptions matter more than this one."
+    ),
+    "help.explore.pair": (
+        "For two assumptions of your choice, each cell shows the median rent of all variants "
+        "falling into it; darker is more expensive. If the colour steps run parallel to one "
+        "axis, only that assumption matters. Slanted or curved steps show that both act "
+        "together: a bad value of one can then be offset by a better value of the other. "
+        "Empty cells do not occur or are excluded by the bank."
+    ),
+    "help.explore.cheapest": (
+        "Grey shows how all variants spread over an assumption's range (almost flat because "
+        "of the even sampling). Blue shows the same for the cheapest {share} of variants "
+        "only. Where blue lies clearly above grey, cheap rents cluster: these values belong "
+        "to the cheap combinations. If blue and grey are level, the assumption does not "
+        "matter for a low rent."
+    ),
+    "explore.param.bank_spread_pp": "Bank rate (pp above inflation)",
+    "explore.short.bank_spread_pp": "bank rate",
+    "explore.unit.bank_spread_pp": "pp",
+    "explore.param.bank_rate_change_pp": "Bank rate after 10 y. (± pp)",
+    "explore.short.bank_rate_change_pp": "rate change after 10 y.",
+    "explore.unit.bank_rate_change_pp": "pp",
+    "explore.param.vacancy_rate": "Rent loss (%)",
+    "explore.short.vacancy_rate": "rent loss",
+    "explore.unit.vacancy_rate": "%",
+    "explore.param.member_loan_share": "Member loans (% of investment)",
+    "explore.short.member_loan_share": "member loans",
+    "explore.unit.member_loan_share": "% of investment",
+    "explore.param.member_loan_spread_pp": "Member loan rate (pp above inflation)",
+    "explore.short.member_loan_spread_pp": "member loan rate",
+    "explore.unit.member_loan_spread_pp": "pp",
+    "explore.param.member_loan_term_years": "Member loan term (years)",
+    "explore.short.member_loan_term_years": "member loan term",
+    "explore.unit.member_loan_term_years": "years",
+    "explore.param.direct_loans_10y_share": "Direct loans 10 y. (% of investment)",
+    "explore.short.direct_loans_10y_share": "10-year direct loans",
+    "explore.unit.direct_loans_10y_share": "% of investment",
+    "explore.param.direct_loan_spread_10y_pp": "Direct loan rate 10 y. (pp above inflation)",
+    "explore.short.direct_loan_spread_10y_pp": "10-year direct loan rate",
+    "explore.unit.direct_loan_spread_10y_pp": "pp",
 }

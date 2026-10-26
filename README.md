@@ -7,7 +7,7 @@ The full specification is in [docs/spec.md](docs/spec.md).
 
 Status: calculation core (`model/`) and a local Panel app (`app/`) with the start page
 modes 1 (required rent), 2 (member view), 3 (admissible investment) and an
-uncertainty page (spread of the required rent).
+a static sensitivity report on the required rent (1,000,000 sampled variants).
 
 ## Quick start
 
@@ -31,11 +31,13 @@ table = simulate(s, rent).table  # one row per year
 
 ```
 model/        calculation core (no UI): types, cashflow, solve, presets, member,
-              uncertainty
+              exploration
 app/          Panel dashboard: main (pages), widgets (inputs), charts (Plotly), layout
               (tiles, boxes), i18n (language and number formats)
 app/locale/  UI texts in German, English and Dutch, plus the methodology page per language
-scripts/      build_site.py (browser version), site_entry.py (its entry point)
+app/data/     precomputed sensitivity report (exploration.json)
+scripts/      build_site.py (browser version), site_entry.py (its entry point),
+              explore_rent.py (regenerates app/data/exploration.json)
 .github/      workflow: test, build and publish on GitHub Pages
 tests/        unit tests and trias reference test
 reference/    trias template, filled reference case and its reader/generator

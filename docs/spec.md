@@ -116,8 +116,8 @@ Result enthält Zeitreihen (Jahr × Größe) als numpy-Arrays bzw. DataFrame: Mi
 - `max_investment(scenario_for, target_rent, lower) -> float` (Modus 3, Grenze a): Bisektion über Gesamtinvestition; `scenario_for` baut das Szenario für eine Investition, Eigenmittel fest, Bank als Rest.
 - `member.member_view(scenario, result, MemberInputs) -> DataFrame` (Modus 2).
 
-### 3.4 Unsicherheit (`uncertainty.py`)
-Acht Eingaben bekommen eine Spanne `(low, high)`; der aktuelle Wert ist der wahrscheinlichste (Dreiecksverteilung): Inflation, Bankzins nach Ende der Zinsbindung (± Prozentpunkte), Mietausfall, Sanierungskosten und Verwaltung + Versicherung (als Faktor auf die Schätzung), Laufzeit der Mitgliederdarlehen (ganze Jahre) sowie Umfang der Mitgliederdarlehen und der 10-Jahres-Direktkredite (als Faktor auf die Planung; fehlender Betrag geht ans Bankdarlehen). `rent_uncertainty(inputs, ranges, n, seed)` zieht n Latin-Hypercube-Stichproben (fester Startwert), sucht je Variante die erforderliche Miete (Klammer um die Basismiete, auf 0,50 € genau) und liefert Perzentile 10/50/90, die sichere Miete (90. Perzentil), das Band des Puffers über der Mindestreserve bei sicherer Miete und die Rangkorrelation jeder Eingabe mit der Miete. Zinssätze (Bank, Förderung, DK5, DK10, Mitgliederdarlehen) verschieben sich mit der gezogenen Inflation, der Abstand bleibt. Das Pufferband gibt es real und nominal. Standard 150 Varianten (≈ 3,8 s im Browser).
+### 3.4 Sensitivitätsanalyse (`exploration.py`)
+Feste Auswertung für die Seite „Unsicherheit“. Acht Annahmen werden gleichverteilt per Latin-Hypercube gezogen (`PARAMETERS`): Bankzins 2–6 Pp. über Inflation, Bankzinsänderung nach 10 Jahren −1 bis +3 Pp., Mietausfall 5–15 %, Mitgliederdarlehen 0–50 % und 10-Jahres-Direktkredite 0–40 % von Grundstück + Haus + Sanierung, Zins Mitgliederdarlehen 0–4 Pp., Laufzeit 15–30 Jahre (ganzzahlig), Zins Direktkredite 10 J. 1,5–2 Pp. Alle übrigen Eingaben auf den Standardwerten. Varianten mit Eigenkapital + Nachrang unter 20 % der Gesamtinvestition werden ausgeschlossen. `explore(inputs, draws)` sucht je Variante die erforderliche Miete auf 0,50 € genau; `summarize` liefert Perzentile, Varianzanteile je Annahme (Korrelationsverhältnis η² über 20 Klassen, linear = quadrierte Pearson-Korrelation), je Annahme und Klasse Minimum (Pareto-Front) und P10/P50/P90, Mediane auf 12×12-Gittern für alle 28 Paare und die Verteilung der Annahmen unter den günstigsten 5 %. `scripts/explore_rent.py` rechnet 1.000.000 Varianten parallel (≈ 10–15 min) und schreibt `app/data/exploration.json`; die Seite liest nur diese Datei. Nach Änderung der Standardwerte neu erzeugen (ein Test prüft die Übereinstimmung).
 
 ### 3.5 Tests (`tests/`)
 - Annuität, Ratentilgung, Anlaufjahre, Endfällig gegen geschlossene Formeln (PMT).
@@ -168,7 +168,7 @@ wohnprojekt-dashboard/
     cashflow.py           Jahresschleife, Tranchenlogik
     solve.py              required_rent, max_investment
     member.py             member_view (Modus 2)
-    uncertainty.py        Bandbreiten, LHS, Perzentile
+    exploration.py        Sensitivitätsanalyse (LHS, Auswertung)
     presets.py            Laden der JSON-Szenarien, Rechtsform-Presets
   app/
     main.py               Panel-App, Seitenstruktur §4.2

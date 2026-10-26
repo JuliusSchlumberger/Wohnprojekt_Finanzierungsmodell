@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 
 from model import simulate
-from model.presets import example_scenario
+from model.presets import ProjectInputs, example_scenario
 from model.types import Rules, Scenario
 
 RENT = 560.0  # EUR per person and month
@@ -109,8 +109,9 @@ def test_maintenance_reserve_collects_two_percent_and_spends_actual_maintenance(
 def test_initial_vacancy_applies_to_first_three_years_only():
     _, res = _app_result()
     vacancy = res.table.vacancy_rate.loc[1:]
-    assert (vacancy.loc[1:3] == 0.20).all()
-    assert (vacancy.loc[4:] == 0.04).all()
+    defaults = ProjectInputs()
+    assert (vacancy.loc[1:3] == defaults.initial_vacancy_rate).all()
+    assert (vacancy.loc[4:] == defaults.vacancy_rate).all()
 
 
 def test_payout_option_pays_redirected_surplus_every_15_years():

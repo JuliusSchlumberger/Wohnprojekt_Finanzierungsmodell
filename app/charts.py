@@ -12,6 +12,7 @@ import math
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 
 from app.i18n import Translator
 from model import Result, Scenario
@@ -42,16 +43,20 @@ TRANCHE_COLORS = {
     "bank_refinance": SERIES[5],
     "direct_loans_refinance": SERIES[5],
 }
-UNCERTAIN_INPUTS = (
-    "inflation",
-    "bank_rate_change_pp",
-    "vacancy_rate",
-    "renovation_factor",
-    "running_cost_factor",
-    "member_loan_term_years",
-    "member_loan_factor",
-    "direct_loans_10y_factor",
-)
+SEQUENTIAL = [
+    [0.0, "#cde2fb"],
+    [0.25, "#86b6ef"],
+    [0.5, "#3987e5"],
+    [0.75, "#1c5cab"],
+    [1.0, "#0d366b"],
+]
+# Sampled parameters stored as fractions and shown in percent.
+EXPLORE_PERCENT = {
+    "vacancy_rate": 100.0,
+    "member_loan_share": 100.0,
+    "direct_loans_10y_share": 100.0,
+}
+EXPLORE_COLUMNS = 4
 
 
 def _deflator(result: Result, real: bool = True) -> pd.Series:
@@ -389,100 +394,171 @@ def investment_curve(
     return fig
 
 
-def rent_distribution(
-    rents: pd.Series, base_rent: float, median: float, safe_rent: float, tr: Translator = GERMAN
-) -> go.Figure:
-    """How often each required rent occurs across the sampled variants."""
-    counts, edges = np.histogram(rents.dropna(), bins=20)
-    centers = 0.5 * (edges[:-1] + edges[1:])
+def explore_value(name: str, value: float) -> float:
+    """A sampled parameter in its display unit (shares and rates in %)."""
+    return value * EXPLORE_PERCENT.get(name, 1.0)
+
+
+def _explore_axes(fig: go.Figure, tr: Translator, title: str, height: int) -> go.Figure:
+    axis = {"gridcolor": GRID, "zerolinecolor": GRID, "linecolor": GRID, "tickcolor": GRID}
+    fig.update_xaxes(**axis)
+    fig.update_yaxes(**axis)
+    fig.update_layout(
+        title={"text": title, "font": {"size": 16, "color": INK}, "x": 0, "xanchor": "left"},
+        font={"family": "system-ui, -apple-system, Segoe UI, sans-serif", "color": INK_SECONDARY},
+        separators=tr.plotly_separators,
+        legend={"orientation": "h", "y": -0.12, "x": 0},
+        margin={"l": 70, "r": 20, "t": 90, "b": 40},
+        height=height,
+        plot_bgcolor=SURFACE,
+        paper_bgcolor="rgba(0,0,0,0)",
+        hovermode="closest",
+    )
+    fig.update_annotations(font={"size": 12, "color": INK_SECONDARY})
+    return fig
+
+
+def _grid(names: list[str], tr: Translator, **kwargs):
+    rows = math.ceil(len(names) / EXPLORE_COLUMNS)
+    titles = [tr(f"explore.param.{n}") for n in names]
+    return make_subplots(
+        rows=rows,
+        cols=EXPLORE_COLUMNS,
+        subplot_titles=titles,
+        horizontal_spacing=0.06,
+        vertical_spacing=0.16,
+        **kwargs,
+    )
+
+
+def importance(table: pd.DataFrame, tr: Translator = GERMAN) -> go.Figure:
+    """Share of the rent's spread each input explains alone, split linear / non-linear."""
+    labels = [tr(f"explore.param.{n}") for n in table.index]
     fig = go.Figure()
-    fig.add_bar(x=centers, y=counts, name=tr("chart.dist.count"), marker_color=SERIES[0])
-    top = counts.max() * 1.1
-    for value, key, color, dash in [
-        (base_rent, "base", NEUTRAL, "dot"),
-        (median, "median", INK, "solid"),
-        (safe_rent, "safe", SERIES[1], "dash"),
+    for key, values, color in [
+        ("linear", table["linear"], SERIES[0]),
+        ("nonlinear", table["total"] - table["linear"], SERIES[1]),
     ]:
-        fig.add_scatter(
-            x=[value, value],
-            y=[0, top],
-            name=tr(f"chart.dist.{key}"),
-            mode="lines",
-            line={"color": color, "dash": dash},
+        fig.add_bar(
+            y=labels,
+            x=100 * values.to_numpy(),
+            name=tr(f"chart.explore.importance.{key}"),
+            orientation="h",
+            marker={"color": color, "line": {"color": SURFACE, "width": 1}},
+            hovertemplate="%{y}: %{x:.1f} %<extra></extra>",
         )
-    _layout(fig, tr("chart.dist.title"), tr("chart.dist.count"), tr)
-    fig.update_traces(
-        hovertemplate=f"{tr.eur_hover('x')}: %{{y}} {tr('chart.dist.hover_variants')}",
-        selector={"type": "bar"},
-    )
-    fig.update_traces(hovertemplate=tr.eur_hover("x", 2), selector={"mode": "lines"})
+    _explore_axes(fig, tr, tr("chart.explore.importance.title"), 420)
     fig.update_layout(
-        xaxis=_rent_axis(tr("chart.dist.x"), tr),
-        yaxis={"tickprefix": "", "ticksuffix": "", "tickformat": "d"},
-        hovermode="closest",
-        bargap=0.05,
+        barmode="stack",
+        bargap=0.3,
+        xaxis={"title": tr("chart.explore.importance.x"), "ticksuffix": " %"},
+        yaxis={"autorange": "reversed"},
+        margin={"l": 260},
     )
     return fig
 
 
-def headroom_band(band: pd.DataFrame, tr: Translator = GERMAN, real: bool = True) -> go.Figure:
-    """Liquidity above the minimum reserve at the safe rent: median and 10-90 % band."""
-    upper, middle = tr("chart.band.p90"), tr("chart.band.band")
-    fig = go.Figure()
-    fig.add_scatter(
-        x=band["year"],
-        y=band["p90"],
-        name=upper,
-        mode="lines",
-        line={"color": SERIES[0], "width": 0},
-        showlegend=False,
-    )
-    fig.add_scatter(
-        x=band["year"],
-        y=band["p10"],
-        name=middle,
-        mode="lines",
-        fill="tonexty",
-        fillcolor="rgba(42, 120, 214, 0.18)",
-        line={"color": SERIES[0], "width": 0},
-    )
-    fig.add_scatter(
-        x=band["year"],
-        y=band["p50"],
-        name=tr("chart.band.median"),
-        mode="lines",
-        line_color=SERIES[0],
-    )
-    fig.add_scatter(
-        x=band["year"],
-        y=0 * band["p50"],
-        name=tr("chart.band.reserve"),
-        mode="lines",
-        line={"dash": "dash", "color": NEUTRAL},
-    )
-    title = _title(tr("chart.band.title"), int(band["year"].iloc[0]), tr, real)
-    fig = _layout(fig, title, "", tr)
-    fig.update_traces(line_width=0, selector={"name": middle})
-    fig.update_traces(line_width=0, selector={"name": upper})
-    return fig
+def parameter_effects(per_parameter: dict, tr: Translator = GERMAN) -> go.Figure:
+    """Required rent against each input: 10-90 % band, median and lowest reachable rent."""
+    names = list(per_parameter)
+    fig = _grid(names, tr, shared_yaxes=True)
+    for i, name in enumerate(names):
+        row, col = divmod(i, EXPLORE_COLUMNS)
+        data = per_parameter[name]
+        x = [explore_value(name, v) for v in data["x"]]
+        first = i == 0
+        cell = {"row": row + 1, "col": col + 1}
+        fig.add_scatter(
+            x=x,
+            y=data["p90"],
+            mode="lines",
+            line={"width": 0, "color": SERIES[0]},
+            showlegend=False,
+            hoverinfo="skip",
+            **cell,
+        )
+        fig.add_scatter(
+            x=x,
+            y=data["p10"],
+            mode="lines",
+            line={"width": 0, "color": SERIES[0]},
+            fill="tonexty",
+            fillcolor="rgba(42, 120, 214, 0.18)",
+            name=tr("chart.explore.effects.band"),
+            legendgroup="band",
+            showlegend=first,
+            hoverinfo="skip",
+            **cell,
+        )
+        for key, color, dash in [("p50", SERIES[0], "solid"), ("min", SERIES[1], "dot")]:
+            fig.add_scatter(
+                x=x,
+                y=data[key],
+                mode="lines+markers" if key == "min" else "lines",
+                line={"color": color, "width": 2, "dash": dash},
+                marker={"size": 4},
+                name=tr(f"chart.explore.effects.{key}"),
+                legendgroup=key,
+                showlegend=first,
+                hovertemplate=f"%{{x:.1f}}: {tr.eur_hover('y')}<extra></extra>",
+                **cell,
+            )
+    prefix, suffix = tr.currency_affixes
+    fig.update_yaxes(tickformat=",.0f", tickprefix=prefix, ticksuffix=suffix)
+    return _explore_axes(fig, tr, tr("chart.explore.effects.title"), 640)
 
 
-def sensitivity(correlations: pd.Series, tr: Translator = GERMAN) -> go.Figure:
-    """Rank correlation of each uncertain input with the required rent."""
-    labels = [
-        tr(f"chart.uncertain.{k}") if k in UNCERTAIN_INPUTS else k for k in correlations.index
-    ]
-    colors = [SERIES[0] if v >= 0 else DIVERGING_NEGATIVE for v in correlations]
-    fig = go.Figure()
-    fig.add_bar(
-        x=labels, y=correlations.to_numpy(), name=tr("chart.sens.name"), marker_color=colors
+def pair_heatmap(pair: dict, x_name: str, y_name: str, tr: Translator = GERMAN) -> go.Figure:
+    """Median required rent over a grid of two inputs."""
+    z = np.array(pair["z"], dtype=float).T
+    prefix, suffix = tr.currency_affixes
+    fig = go.Figure(
+        go.Heatmap(
+            x=[explore_value(x_name, v) for v in pair["x"]],
+            y=[explore_value(y_name, v) for v in pair["y"]],
+            z=z,
+            colorscale=SEQUENTIAL,
+            colorbar={
+                "title": tr("chart.explore.pair.colorbar"),
+                "tickformat": ",.0f",
+                "tickprefix": prefix,
+                "ticksuffix": suffix,
+            },
+            hovertemplate=(
+                f"{tr(f'explore.param.{x_name}')}: %{{x:.1f}}<br>"
+                f"{tr(f'explore.param.{y_name}')}: %{{y:.1f}}<br>"
+                f"{tr('chart.explore.pair.colorbar')}: {tr.eur_hover('z')}<extra></extra>"
+            ),
+        )
     )
-    _layout(fig, tr("chart.sens.title"), tr("chart.sens.y"), tr)
-    fig.update_traces(hovertemplate="%{x}: %{y:.2f}")
+    _explore_axes(fig, tr, tr("chart.explore.pair.title"), 480)
     fig.update_layout(
-        xaxis={"title": "", "tickformat": None, "hoverformat": None},
-        yaxis={"tickprefix": "", "ticksuffix": "", "tickformat": ".1f", "range": [-1, 1]},
-        hovermode="closest",
-        showlegend=False,
+        xaxis={"title": tr(f"explore.param.{x_name}")},
+        yaxis={"title": tr(f"explore.param.{y_name}")},
     )
     return fig
+
+
+def cheapest_profile(cheapest: dict, tr: Translator = GERMAN) -> go.Figure:
+    """Per input: how all variants and the cheapest ones are spread over its range."""
+    names = list(cheapest)
+    fig = _grid(names, tr)
+    for i, name in enumerate(names):
+        row, col = divmod(i, EXPLORE_COLUMNS)
+        data = cheapest[name]
+        x = [explore_value(name, v) for v in data["x"]]
+        for key, color in [("all", NEUTRAL), ("cheapest", SERIES[0])]:
+            fig.add_bar(
+                x=x,
+                y=[100 * v for v in data[key]],
+                marker_color=color,
+                name=tr(f"chart.explore.cheapest.{key}"),
+                legendgroup=key,
+                showlegend=i == 0,
+                hovertemplate="%{x:.1f}: %{y:.1f} %<extra></extra>",
+                row=row + 1,
+                col=col + 1,
+            )
+    fig.update_yaxes(ticksuffix=" %")
+    fig.update_layout(barmode="group", bargap=0.15, bargroupgap=0.05)
+    return _explore_axes(fig, tr, tr("chart.explore.cheapest.title"), 640)

@@ -14,7 +14,6 @@
 - [M6] model/solve.py: equity-like share counts short direct loans fully; revisit after H3 or warn.
 - [N1] model/cashflow.py:291,339: `kinds` omits `member_tranches()`; include or remove MemberType.member_loan_amount.
 - [N2] model/cashflow.py:_distribute: payout_15y pot after year 45 lapses at horizon.
-- [N3] model/uncertainty.py:_rent_near: step 0 when guess is 0 -> endless loop; use max(step, 1.0).
-- [N4] model/uncertainty.py:Ranges: initial vacancy and bank spread not sampled.
+
 - [N5] app/locale/methodik_*.md: note that credited member-loan interest is taxable when credited.
 - [N6] model/presets.py:ProjectInputs: defaults (bank 6 %, member loans 5 %, initial vacancy 20 %/3 y, admin+insurance 6.5 k) need sources.

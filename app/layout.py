@@ -83,14 +83,26 @@ def _table_pane(table: pd.DataFrame, value_format: str, tr: Translator) -> pn.vi
 
 
 def chart_block(
-    fig: go.Figure, help_text: str, tr: Translator, value_format: str = "eur"
+    fig: go.Figure,
+    help_text: str,
+    tr: Translator,
+    value_format: str = "eur",
+    table: pd.DataFrame | None = None,
 ) -> pn.viewable.Viewable:
-    """A chart with its reading guide and its values as a table, both on demand."""
+    """A chart with its reading guide and its values as a table, both on demand.
+
+    `table`, if given, is shown as it is instead of the formatted plotted values.
+    """
+    values = (
+        _table_pane(figure_table(fig), value_format, tr)
+        if table is None
+        else pn.pane.DataFrame(table, max_height=320, sizing_mode="stretch_width")
+    )
     return pn.Column(
         pn.pane.Plotly(fig, sizing_mode="stretch_width", config={"displaylogo": False}),
         pn.Accordion(
             (tr("ui.how_to_read"), pn.pane.Markdown(help_text, sizing_mode="stretch_width")),
-            (tr("ui.values_table"), _table_pane(figure_table(fig), value_format, tr)),
+            (tr("ui.values_table"), values),
             active=[],
             sizing_mode="stretch_width",
         ),

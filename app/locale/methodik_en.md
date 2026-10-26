@@ -61,10 +61,13 @@ plus repayments of direct and member loans falling due and the use of the surplu
 - **Mode 3, target rent**: the largest total investment a target rent can carry, limited by
   the bank's equity requirement. Land, house and renovation are scaled in proportion to the
   cost estimate.
-- **Uncertainty**: for eight inputs with a range, variants are drawn (Latin hypercube,
-  triangular distribution with the current value as the most likely) and the required rent
-  is found for each, to 50 cents. Interest rates move with the sampled inflation and keep
-  their spread above it.
+- **Uncertainty**: a fixed sensitivity analysis. Eight assumptions (bank rate and its change
+  after 10 years, rent loss, amount, rate and term of the member loans, amount and rate of the
+  10-year direct loans) are drawn evenly in 1,000,000 variants (Latin hypercube); all other
+  inputs stay at their defaults. Variants below the equity requirement of the bank are
+  excluded. For each variant the required rent is found to 50 cents; the page evaluates
+  shares of variance (linear and total), the rent per assumption with the lowest reachable
+  rent (Pareto front), pairs of assumptions and the assumptions of the cheapest 5 %.
 
 ## Limits of the model
 
@@ -75,7 +78,7 @@ plus repayments of direct and member loans falling due and the use of the surplu
   term, one bank and one subsidised loan. Loans are not cancelled early, and no replacement
   is taken up after maturity, except the optional refinancing of the member loans and the
   re-raising of the 10-year direct loans.
-- **Expected values**: apart from the uncertainty page, fixed values are used; vacancy,
+- **Expected values**: apart from the sensitivity analysis, fixed values are used; vacancy,
   interest changes and inflation are assumptions, not forecasts.
 - **Legal form** is not distinguished; its effect (e.g. higher administration costs in a
   cooperative) can be represented through the inputs.

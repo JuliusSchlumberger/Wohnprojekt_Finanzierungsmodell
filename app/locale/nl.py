@@ -123,12 +123,6 @@ zit.
     "label.entry_year": "Intrek (jaar)",
     "label.exit_year": "Vertrek (jaar)",
     "label.market_rent": "Markthuur per persoon (€/maand)",
-    "label.inflation_range": "Inflatie (%)",
-    "label.bank_change_range": "Bankrente na 10 jr. (± %-punt)",
-    "label.vacancy_range": "Huurderving (%)",
-    "label.renovation_range": "Renovatie (% van schatting)",
-    "label.running_range": "Beheer, verzekering (%)",
-    "label.n_samples": "Aantal varianten",
     # Options of choice inputs
     "option.tenure.purchase": "Koop",
     "option.tenure.leasehold": "Erfpacht",
@@ -283,27 +277,6 @@ zit.
         "reserve) − inleg − ledenleningen − directe leningen − subsidieleningen. Omdat de "
         "startliquiditeit van de huur afhangt, wordt ze samen met de huur berekend."
     ),
-    "info.inflation_range": (
-        "Bandbreedte van de jaarlijkse inflatie. Meest waarschijnlijk: startpagina."
-    ),
-    "info.bank_change_range": (
-        "Wijziging van de bankrente na de rentevaste periode (10 jaar), in procentpunten. "
-        "Meest waarschijnlijk: de keuze op de startpagina (daalt −1, gelijk 0, stijgt +1)."
-    ),
-    "info.vacancy_range": (
-        "Bandbreedte van de huurderving vanaf het 4e jaar. Meest waarschijnlijk: startpagina."
-    ),
-    "info.renovation_range": (
-        "Renovatiekosten in % van jullie schatting. 130 % betekent: de renovatie wordt 30 % "
-        "duurder. Meest waarschijnlijk: 100 %."
-    ),
-    "info.running_range": (
-        "Beheer en verzekering in % van jullie schatting. Meest waarschijnlijk: 100 %."
-    ),
-    "info.n_samples": (
-        "Meer varianten maken de uitkomst stabieler, maar duren langer (in de browser "
-        "ongeveer 2,5 seconde per 100 varianten)."
-    ),
     # Summaries under input boxes
     "summary.costs": "Kosten koper ({rate}): **{ancillary}**  \nTotale investering: **{total}**",
     "summary.costs_unknown": "Totale investering: –",
@@ -406,18 +379,6 @@ huis mag zijn:
 
 De toelaatbare investering is de kleinste van de twee grenzen.
 """,
-    "method.uncertainty": """
-Veel aannames kennen jullie vandaag niet precies. Hier geven jullie voor de vijf
-belangrijkste een bandbreedte op. De calculator trekt daaruit veel varianten
-(Latin-hypercube-steekproef) en zoekt voor elke variant de benodigde huur zoals in modus 1,
-tot op 50 cent.
-
-- Binnen elke bandbreedte is de waarde van de startpagina het **meest waarschijnlijk**;
-  waarden naar de randen toe worden zeldzamer (driehoeksverdeling).
-- De **veilige huur** is de huur die in 90 % van de varianten volstaat.
-- Alle overige aannames komen ongewijzigd van de startpagina.
-- Dezelfde invoer geeft altijd dezelfde uitkomst (vaste toevalsstartwaarde).
-""",
     # Chart reading guides
     "help.annual_costs": """
 Elke balk laat zien waaraan het project in een jaar geld uitgeeft; de zwarte lijn zijn de
@@ -490,40 +451,6 @@ Vermogen van het lid in de loop van de tijd, gecorrigeerd voor inflatie.
 - **Gestreept**: als inleg en lening verloren zouden gaan, bijv. bij een faillissement.
   Ligt ook deze lijn boven de vergelijking, dan loont het project zelfs dan.
 """,
-    "help.rent_distribution": """
-Elke balk telt hoeveel varianten een benodigde huur in dat bereik hebben.
-
-- **Gestippeld**: de huur uit modus 1, met de waarden van de startpagina.
-- **Doorgetrokken**: de mediaan; de helft van de varianten heeft minder nodig, de helft
-  meer.
-- **Gestreept**: de veilige huur. Slechts 10 % van de varianten heeft meer nodig.
-
-Hoe breder de verdeling, hoe meer de huur afhangt van aannames die jullie vandaag niet
-kennen. Een verschil tussen de huur uit modus 1 en de veilige huur is een buffer die jullie
-kunnen inplannen.
-""",
-    "help.headroom_band": """
-Hoeveel geld er boven de minimale reserve op de rekening staat als jullie de veilige huur
-rekenen, gecorrigeerd voor inflatie.
-
-- **Lijn**: mediaan over alle varianten.
-- **Band**: 80 % van de varianten ligt daarbinnen (tussen het 10e en 90e percentiel).
-- De buffer is elk jaar hoogstens zo hoog totdat het overschot wordt afgeroomd; daarna
-  ligt hij dicht bij nul.
-
-Ligt de onderkant van de band onder nul, dan komen in dat jaar enkele varianten onder de
-reserve. Dat zijn de 10 % waarvoor de veilige huur niet volstaat.
-""",
-    "help.sensitivity": """
-Hoe sterk elke onzekere aanname samenhangt met de benodigde huur (rangcorrelatie, −1 tot
-+1).
-
-- **Positief** (blauw): is de aanname hoger, dan stijgt de huur, bijv. hogere
-  renovatiekosten.
-- **Negatief** (rood): is de aanname hoger, dan daalt de huur. Bij inflatie komt dat
-  doordat de huur met de inflatie meegroeit, rente en aflossing niet.
-- Hoe langer de balk, hoe meer het loont om deze aanname nauwkeuriger uit te zoeken.
-""",
     # Mode 1 KPIs
     "kpi.required_rent.label": "Benodigde huur",
     "kpi.required_rent.help": (
@@ -531,6 +458,7 @@ Hoe sterk elke onzekere aanname samenhangt met de benodigde huur (rangcorrelatie
         "minimale reserve blijft en elke achterstand binnen {years} jaar is voldaan. Daarna "
         "stijgt ze met de inflatie."
     ),
+    "kpi.from_mode1": "uit modus 1",
     "kpi.per_person_month": "per persoon per maand",
     "kpi.rent_income.label": "Huurinkomsten jaar 1",
     "kpi.rent_income.help": "Huur van alle personen in het eerste jaar, voor huurderving.",
@@ -572,7 +500,6 @@ Hoe sterk elke onzekere aanname samenhangt met de benodigde huur (rangcorrelatie
     "kpi.project_rent.help": (
         "Benodigde huur uit modus 1, per persoon per maand in het eerste jaar."
     ),
-    "kpi.from_mode1": "uit modus 1",
     "kpi.saving.label": "Besparing t.o.v. markthuur",
     "kpi.saving.help": (
         "Markthuur min projecthuur in het eerste jaar na intrek. Later groeit de besparing "
@@ -625,30 +552,6 @@ Hoe sterk elke onzekere aanname samenhangt met de benodigde huur (rangcorrelatie
     ),
     "kpi.bank_limit.none": "geen",
     # Uncertainty page
-    "unc.ranges": "Bandbreedtes",
-    "unc.compute": "Berekenen",
-    "unc.hint": "*Meest waarschijnlijke waarde steeds van de startpagina.*",
-    "unc.prompt": "Stel de bandbreedtes in en klik op „Berekenen”.",
-    "unc.stale": (
-        "Aannames zijn gewijzigd. De uitkomsten hieronder zijn verouderd; bereken opnieuw."
-    ),
-    "kpi.base.label": "Huur zonder onzekerheid",
-    "kpi.base.help": "Benodigde huur uit modus 1, met de waarden van de startpagina.",
-    "kpi.median.label": "Mediaan",
-    "kpi.median.help": "De helft van de varianten heeft minder nodig, de helft meer.",
-    "kpi.spread.label": "Bandbreedte 10–90 %",
-    "kpi.spread.help": "80 % van de varianten heeft een huur in dit bereik nodig.",
-    "kpi.safe.label": "Veilige huur",
-    "kpi.safe.help": (
-        "Volstaat in 90 % van de varianten. Het verschil met de huur zonder onzekerheid is "
-        "een buffer voor ongunstige ontwikkelingen."
-    ),
-    "kpi.safe.note": "{amount} boven modus 1",
-    "kpi.failed.label": "Varianten zonder oplossing",
-    "kpi.failed.help": (
-        "In deze varianten volstaat geen huur tot 5.000 € per persoon; ze ontbreken in de "
-        "evaluatie."
-    ),
     # Methodology page
     "methodik.inputs_heading": "## Invoer en standaardwaarden",
     "methodik.table_header": "| Onderdeel | Invoer | Standaard | Betekenis |",
@@ -696,46 +599,7 @@ Hoe sterk elke onzekere aanname samenhangt met de benodigde huur (rangcorrelatie
     "chart.curve.x": "Doelhuur (€ per persoon/maand)",
     "chart.curve.hover_rent": "Doelhuur",
     "chart.curve.hover_investment": "Investering",
-    "chart.uncertain.inflation": "Inflatie",
-    "chart.uncertain.bank_rate_change_pp": "Bankrente na 10 jaar",
-    "chart.uncertain.vacancy_rate": "Huurderving",
-    "chart.uncertain.renovation_factor": "Renovatiekosten",
-    "chart.uncertain.running_cost_factor": "Beheer en verzekering",
-    "chart.dist.title": "Benodigde huur over alle varianten",
-    "chart.dist.count": "Aantal varianten",
-    "chart.dist.base": "Zonder onzekerheid",
-    "chart.dist.median": "Mediaan",
-    "chart.dist.safe": "Veilige huur (volstaat in 90 %)",
-    "chart.dist.x": "Benodigde huur (€ per persoon/maand)",
-    "chart.dist.hover_variants": "varianten",
-    "chart.band.title": "Buffer boven de minimale reserve bij veilige huur",
-    "chart.band.p90": "90e percentiel",
-    "chart.band.band": "10–90 %-band",
-    "chart.band.median": "Mediaan",
-    "chart.band.reserve": "Minimale reserve",
-    "chart.sens.title": "Wat drijft de onzekerheid?",
-    "chart.sens.y": "Rangcorrelatie met de huur",
-    "chart.sens.name": "Samenhang",
     # Additional uncertain inputs
-    "label.member_loan_term_range": "Looptijd ledenleningen (jaar)",
-    "label.member_loan_range": "Ledenleningen (% van planning)",
-    "label.direct_loans_10y_range": "Directe leningen 10 jr. (% van planning)",
-    "info.member_loan_term_range": (
-        "Bandbreedte van de looptijd van de ledenleningen in hele jaren. Meest "
-        "waarschijnlijk: startpagina (onder „Uitgebreid”)."
-    ),
-    "info.member_loan_range": (
-        "Hoeveel ledenleningen er werkelijk binnenkomen, in % van het geplande bedrag. "
-        "Ontbreekt er geld, dan springt de banklening bij. Meest waarschijnlijk: 100 %."
-    ),
-    "info.direct_loans_10y_range": (
-        "Hoeveel directe leningen van 10 jaar er werkelijk worden opgehaald, in % van het "
-        "geplande bedrag. Ontbreekt er geld, dan springt de banklening bij. Meest "
-        "waarschijnlijk: 100 %."
-    ),
-    "chart.uncertain.member_loan_term_years": "Looptijd ledenleningen",
-    "chart.uncertain.member_loan_factor": "Omvang ledenleningen",
-    "chart.uncertain.direct_loans_10y_factor": "Omvang directe leningen 10 jaar",
     # Rates relative to inflation, member loan payoff, nominal display
     "label.member_loan_spread_pp": "Rente ledenleningen (%-punt boven inflatie)",
     "label.direct_loan_spread_5y_pp": "Rente 5 jaar (%-punt boven inflatie)",
@@ -822,4 +686,151 @@ Hoe sterk elke onzekere aanname samenhangt met de benodigde huur (rangcorrelatie
     "option.direct_loan_rollover_pct.50": "50 %",
     "option.direct_loan_rollover_pct.75": "75 %",
     "option.direct_loan_rollover_pct.100": "100 %",
+    # Sensitivity report page
+    "explore.title": "Gevoeligheids- en onzekerheidsanalyse",
+    "explore.intro": (
+        "Hoe sterk hangt de benodigde huur af van aannames die nu nog open zijn, en welke "
+        "combinaties maken het wonen betaalbaar? Daarvoor zijn {n} varianten doorgerekend "
+        "(Monte Carlo met een Latin-hypercube-steekproef): acht aannames zijn tegelijk binnen"
+        " de onderstaande bandbreedtes getrokken, elke waarde even waarschijnlijk; alle "
+        "andere invoer staat op de standaardwaarden. {excluded} van de varianten voldoet niet"
+        " aan de eigenvermogenseis van de bank (inleg plus achtergestelde leningen onder "
+        "{min_share} van de totale investering) en wordt niet meegenomen; er blijven {valid} "
+        "varianten over.\n\nDeze pagina is een vaste analyse: wijzigingen op de startpagina "
+        "werken hier niet door."
+    ),
+    "explore.ranges_title": "Gevarieerde aannames",
+    "explore.ranges_note": (
+        "Investering = grond + huis + renovatie. Rentes als opslag boven 2 % inflatie. De "
+        "standaardwaarde is de waarde op de startpagina; die kan buiten de bandbreedte "
+        "liggen."
+    ),
+    "explore.col.parameter": "Aanname",
+    "explore.col.range": "Bandbreedte",
+    "explore.col.default": "Standaardwaarde",
+    "explore.col.value": "Waarde",
+    "explore.kpi.base.label": "Huur met standaardwaarden",
+    "explore.kpi.base.help": "Benodigde huur zoals in modus 1, met alle standaardwaarden.",
+    "explore.kpi.median.label": "Mediaan van alle varianten",
+    "explore.kpi.median.help": "De helft van de varianten heeft minder nodig, de helft meer.",
+    "explore.kpi.spread.label": "Middelste 80 % van de varianten",
+    "explore.kpi.spread.help": (
+        "10 % van de varianten ligt eronder, 10 % erboven (10e tot 90e percentiel)."
+    ),
+    "explore.kpi.best.label": "Laagste gevonden huur",
+    "explore.kpi.best.help": (
+        "De goedkoopste van alle varianten; de aannames staan onder „Belangrijkste resultaten”."
+    ),
+    "explore.findings_title": "Belangrijkste resultaten",
+    "explore.finding.drivers": (
+        "De grootste hefbomen zijn de **{first}** ({first_share} van de spreiding van de "
+        "huur) en de **{second}** ({second_share}); samen met de {third} verklaren ze "
+        "{top3_share} (figuur 1)."
+    ),
+    "explore.finding.linear_up": (
+        "De **{name}** werkt vrijwel lineair: hoe hoger, hoe duurder; over de bandbreedte "
+        "{range} stijgt de mediaan van de huur met {change}."
+    ),
+    "explore.finding.linear_down": (
+        "De **{name}** werkt vrijwel lineair: hoe hoger, hoe goedkoper; over de bandbreedte "
+        "{range} daalt de mediaan van de huur met {change}."
+    ),
+    "explore.finding.nonlinear": (
+        "De **{name}** werkt niet lineair: het effect hangt af van waar in de bandbreedte "
+        "{range} men zit; de mediaan is het laagst rond {best}, tussen de uiteinden zit "
+        "{change} (figuur 2)."
+    ),
+    "explore.finding.interactions": (
+        "Ongeveer {share} van de spreiding ontstaat pas door het samenspel van meerdere "
+        "aannames (figuur 3)."
+    ),
+    "explore.finding.cheapest": (
+        "De goedkoopste 5 % van de varianten (huur tot {threshold}) heeft doorgaans "
+        "(mediaan): {profile} (figuur 4)."
+    ),
+    "explore.finding.best": "De laagste huur ({rent}) ontstond bij: {profile}",
+    "label.explore_pair_x": "Aanname horizontaal",
+    "label.explore_pair_y": "Aanname verticaal",
+    "explore.pair_same": "Kies twee verschillende aannames.",
+    "explore.missing": (
+        "De analyse ontbreekt nog. Die wordt eenmalig gemaakt met `python scripts/explore_rent.py`."
+    ),
+    "explore.limits_title": "Grenzen van de analyse",
+    "explore.limits": (
+        "- De bandbreedtes zijn aannames, geen prognoses; elke waarde erbinnen geldt als even"
+        " waarschijnlijk. De frequenties zeggen dus niets over hoe waarschijnlijk een huur "
+        "is, alleen hoeveel ruimte de aannames laten.\n- Alle andere invoer blijft op de "
+        "standaardwaarden, ook inflatie (2 %), aanvangsleegstand en het terugbetalen van de "
+        "ledenleningen van de rekening.\n- Getoond wordt de benodigde aanvangshuur per persoon"
+        " en maand (zoals modus 1), tot op 50 cent; latere huurverlagingen uit overschotten "
+        "zijn niet meegenomen.\n- Het aandeel in de spreiding beschrijft elke aanname op "
+        "zichzelf; de rest tot 100 % komt uit wisselwerkingen."
+    ),
+    "chart.explore.importance.title": "Figuur 1: Welke aanname beweegt de huur hoeveel?",
+    "chart.explore.importance.linear": "lineair deel",
+    "chart.explore.importance.nonlinear": "niet-lineair deel",
+    "chart.explore.importance.total": "totaal aandeel",
+    "chart.explore.importance.x": "Aandeel in de spreiding van de huur",
+    "chart.explore.effects.title": "Figuur 2: Huur afhankelijk van elke afzonderlijke aanname",
+    "chart.explore.effects.band": "middelste 80 % van de varianten",
+    "chart.explore.effects.p50": "mediaan",
+    "chart.explore.effects.min": "laagst haalbare huur (Pareto-front)",
+    "chart.explore.pair.title": "Figuur 3: Samenspel van twee aannames",
+    "chart.explore.pair.colorbar": "Mediaan huur",
+    "chart.explore.cheapest.title": "Figuur 4: Waarmee bereiken de goedkoopste varianten hun huur?",
+    "chart.explore.cheapest.all": "alle varianten",
+    "chart.explore.cheapest.cheapest": "goedkoopste 5 %",
+    "help.explore.importance": (
+        "Elke balk laat zien welk deel van de spreiding van de benodigde huur deze ene "
+        "aanname verklaart (variantieaandeel). Blauw is het deel dat een rechte lijn "
+        "verklaart; oranje het extra deel uit een gebogen verloop. Is oranje groot, dan is er"
+        " een gunstigste zone in plaats van „hoe meer, hoe beter”. Lange balken zijn de "
+        "aannames waarover onderhandelen of nader uitzoeken het meest oplevert."
+    ),
+    "help.explore.effects": (
+        "Eén vak per aanname; horizontaal de waarde, verticaal de benodigde huur van alle "
+        "varianten met die waarde. De lijn is de mediaan, de band omvat de middelste 80 %. De"
+        " gestippelde lijn is de laagste huur die bij die waarde überhaupt haalbaar is als de"
+        " andere aannames gunstig uitvallen (Pareto-front): beter kan het bij die waarde "
+        "niet. Een rechte lijn betekent een lineair effect, een kromme of een dal een "
+        "niet-lineair; een brede band betekent dat de andere aannames meer uitmaken dan deze."
+    ),
+    "help.explore.pair": (
+        "Voor twee vrij te kiezen aannames toont elk vak de mediaan van de huur van alle "
+        "varianten in dat vak; donkerder is duurder. Lopen de kleurstappen evenwijdig aan één"
+        " as, dan telt alleen die aanname. Schuine of gebogen stappen laten zien dat beide "
+        "samenwerken: een ongunstige waarde van de ene is dan te compenseren met een betere "
+        "van de andere. Lege vakken komen niet voor of zijn door de bank uitgesloten."
+    ),
+    "help.explore.cheapest": (
+        "Grijs toont hoe alle varianten over de bandbreedte van een aanname verdeeld zijn "
+        "(door de gelijkmatige trekking bijna vlak). Blauw toont hetzelfde alleen voor de "
+        "goedkoopste {share} van de varianten. Waar blauw duidelijk boven grijs ligt, komen "
+        "lage huren vaker voor: die waarden horen bij de gunstige combinaties. Liggen blauw "
+        "en grijs gelijk, dan maakt de aanname voor een lage huur niet uit."
+    ),
+    "explore.param.bank_spread_pp": "Bankrente (pp boven inflatie)",
+    "explore.short.bank_spread_pp": "bankrente",
+    "explore.unit.bank_spread_pp": "pp",
+    "explore.param.bank_rate_change_pp": "Bankrente na 10 jr. (± pp)",
+    "explore.short.bank_rate_change_pp": "renteverandering na 10 jr.",
+    "explore.unit.bank_rate_change_pp": "pp",
+    "explore.param.vacancy_rate": "Huurderving (%)",
+    "explore.short.vacancy_rate": "huurderving",
+    "explore.unit.vacancy_rate": "%",
+    "explore.param.member_loan_share": "Ledenleningen (% van investering)",
+    "explore.short.member_loan_share": "ledenleningen",
+    "explore.unit.member_loan_share": "% van investering",
+    "explore.param.member_loan_spread_pp": "Rente ledenleningen (pp boven inflatie)",
+    "explore.short.member_loan_spread_pp": "rente ledenleningen",
+    "explore.unit.member_loan_spread_pp": "pp",
+    "explore.param.member_loan_term_years": "Looptijd ledenleningen (jaar)",
+    "explore.short.member_loan_term_years": "looptijd ledenleningen",
+    "explore.unit.member_loan_term_years": "jaar",
+    "explore.param.direct_loans_10y_share": "Directe leningen 10 jr. (% van investering)",
+    "explore.short.direct_loans_10y_share": "directe leningen 10 jr.",
+    "explore.unit.direct_loans_10y_share": "% van investering",
+    "explore.param.direct_loan_spread_10y_pp": "Rente directe leningen 10 jr. (pp boven inflatie)",
+    "explore.short.direct_loan_spread_10y_pp": "rente directe leningen 10 jr.",
+    "explore.unit.direct_loan_spread_10y_pp": "pp",
 }

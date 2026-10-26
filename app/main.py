@@ -1,4 +1,4 @@
-"""Panel app: start page, modes 1-3, uncertainty and methodology; `panel serve app/main.py`."""
+"""Panel app: start page, modes 1-3, sensitivity report, methodology; `panel serve app/main.py`."""
 
 from __future__ import annotations
 
@@ -10,6 +10,7 @@ import param
 import plotly.graph_objects as go
 
 from app import charts
+from app.explore_page import ExplorationPage
 from app.i18n import LANGUAGES, Translator
 from app.layout import ACCENT, START_BOX_WIDTH, Kpi, box, chart_block, kpi_grid
 from app.widgets import ADVANCED_SECTIONS, SECTIONS, Inputs, with_info
@@ -18,7 +19,6 @@ from model.cashflow import capital_structure
 from model.member import member_view
 from model.presets import build_scenario
 from model.solve import binding_year, is_affordable
-from model.uncertainty import Ranges, rent_uncertainty
 
 ASSUMPTION_COUNT = 9
 PAGE_KEYS = ["start", "mode1", "mode2", "mode3", "uncertainty", "methodik"]
@@ -60,17 +60,6 @@ MODE3_LEVERS = [
     "inflation_pct",
     "min_equity_like_pct",
 ]
-RANGE_INPUTS = [
-    "inflation_range",
-    "bank_change_range",
-    "vacancy_range",
-    "renovation_range",
-    "running_range",
-    "member_loan_term_range",
-    "member_loan_range",
-    "direct_loans_10y_range",
-]
-RANGE_STEPS = {"bank_change_range": 0.25, "member_loan_term_range": 1.0}
 CURVE_RENTS_EUR_PERSON = np.arange(200.0, 1_200.01, 50.0)
 MIN_INVESTMENT_EUR = 50_000.0
 LEVER_WIDTH = 360
@@ -548,160 +537,6 @@ class Mode3(_Page):
         ]
 
 
-class UncertaintyPage(param.Parameterized):
-    """Spread of the required rent for ranges of the most uncertain inputs."""
-
-    inputs = param.ClassSelector(class_=Inputs)
-    inflation_range = param.Range((1.0, 4.0), bounds=(0.0, 8.0))
-    bank_change_range = param.Range((-1.0, 3.0), bounds=(-3.0, 5.0))
-    vacancy_range = param.Range((2.0, 8.0), bounds=(0.0, 20.0))
-    renovation_range = param.Range((90.0, 130.0), bounds=(50.0, 200.0))
-    running_range = param.Range((80.0, 150.0), bounds=(50.0, 250.0))
-    member_loan_term_range = param.Range((10.0, 20.0), bounds=(5.0, 30.0))
-    member_loan_range = param.Range((60.0, 110.0), bounds=(0.0, 200.0))
-    direct_loans_10y_range = param.Range((50.0, 110.0), bounds=(0.0, 200.0))
-    n_samples = param.Integer(150, bounds=(50, 300))
-    result = param.Parameter(default=None)
-    error = param.String(default="")
-    stale = param.Boolean(default=True)
-
-    def __init__(self, **params):
-        super().__init__(inputs=params.pop("inputs", None) or Inputs(), **params)
-        self.inputs.param.watch(self._mark_stale, self.inputs.input_names())
-        self.param.watch(self._mark_stale, [*RANGE_INPUTS, "n_samples"])
-        self.inputs.param.watch(self._apply_language, "language")
-        self._apply_language()
-
-    @property
-    def tr(self) -> Translator:
-        return self.inputs.tr
-
-    def _apply_language(self, *_events) -> None:
-        for name in [*RANGE_INPUTS, "n_samples"]:
-            self.param[name].label = self.tr(f"label.{name}")
-
-    def _mark_stale(self, *_events) -> None:
-        self.stale = True
-
-    def ranges(self) -> Ranges:
-        def frac(r):
-            return (r[0] / 100, r[1] / 100)
-
-        return Ranges(
-            inflation=frac(self.inflation_range),
-            bank_rate_change_pp=tuple(self.bank_change_range),
-            vacancy_rate=frac(self.vacancy_range),
-            renovation_factor=frac(self.renovation_range),
-            running_cost_factor=frac(self.running_range),
-            member_loan_term_years=tuple(self.member_loan_term_range),
-            member_loan_factor=frac(self.member_loan_range),
-            direct_loans_10y_factor=frac(self.direct_loans_10y_range),
-        )
-
-    def compute(self, *_events) -> None:
-        try:
-            result = rent_uncertainty(self.inputs.to_project(), self.ranges(), self.n_samples)
-        except ValueError as exc:
-            self.param.update(result=None, error=str(exc), stale=False)
-            return
-        self.param.update(result=result, error="", stale=False)
-
-    def kpi_items(self) -> list[Kpi]:
-        tr, r = self.tr, self.result
-        p10, p50, p90 = (r.rent_percentiles[q] for q in (10, 50, 90))
-        items = [
-            Kpi(
-                tr("kpi.base.label"),
-                tr.eur(r.base_rent, 2),
-                tr("kpi.base.help"),
-                note=tr("kpi.from_mode1"),
-            ),
-            Kpi(
-                tr("kpi.median.label"),
-                tr.eur(p50, 2),
-                tr("kpi.median.help"),
-                note=tr("kpi.per_person_month"),
-            ),
-            Kpi(tr("kpi.spread.label"), f"{tr.eur(p10)} – {tr.eur(p90)}", tr("kpi.spread.help")),
-            Kpi(
-                tr("kpi.safe.label"),
-                tr.eur(p90, 2),
-                tr("kpi.safe.help"),
-                note=tr("kpi.safe.note", amount=tr.eur(p90 - r.base_rent)),
-                tone="warning" if p90 > r.base_rent else "good",
-            ),
-        ]
-        if r.failed:
-            items.append(
-                Kpi(tr("kpi.failed.label"), str(r.failed), tr("kpi.failed.help"), tone="critical")
-            )
-        return items
-
-    def chart_items(self) -> list[tuple[go.Figure, str, str]]:
-        tr, r = self.tr, self.result
-        real = self.inputs.display == "real"
-        band = r.headroom_band if real else r.headroom_band_nominal
-        help_band = tr("help.headroom_band")
-        if not real:
-            help_band = tr("help.nominal_note") + help_band
-        distribution = charts.rent_distribution(
-            r.samples["required_rent"], r.base_rent, r.rent_percentiles[50], r.safe_rent, tr
-        )
-        return [
-            (distribution, tr("help.rent_distribution"), "count"),
-            (charts.headroom_band(band, tr, real), help_band, "eur"),
-            (charts.sensitivity(r.sensitivity, tr), tr("help.sensitivity"), "ratio"),
-        ]
-
-    @param.depends("result", "error", "stale", "inputs.display")
-    def results(self) -> pn.viewable.Viewable:
-        tr = self.tr
-        if self.error:
-            return pn.pane.Alert(tr("ui.no_solution", error=self.error), alert_type="danger")
-        if self.result is None:
-            return pn.pane.Alert(tr("unc.prompt"), alert_type="info")
-        blocks = [chart_block(fig, text, tr, fmt) for fig, text, fmt in self.chart_items()]
-        notice = [pn.pane.Alert(tr("unc.stale"), alert_type="warning")] if self.stale else []
-        return pn.Column(*notice, kpi_grid(self.kpi_items()), *blocks, sizing_mode="stretch_width")
-
-    def view(self) -> pn.viewable.Viewable:
-        tr = self.tr
-        sliders = [
-            with_info(
-                pn.widgets.RangeSlider.from_param(
-                    self.param[name], step=RANGE_STEPS.get(name, 0.5)
-                ),
-                tr(f"info.{name}"),
-            )
-            for name in RANGE_INPUTS
-        ]
-        button = pn.widgets.Button(
-            label=tr("unc.compute"), color="primary", sizing_mode="stretch_width"
-        )
-        button.on_click(self.compute)
-        levers = box(
-            tr("unc.ranges"),
-            *sliders,
-            with_info(
-                pn.widgets.IntSlider.from_param(self.param.n_samples, step=50),
-                tr("info.n_samples"),
-            ),
-            button,
-            pn.pane.Markdown(tr("unc.hint"), styles={"font-size": "13px"}),
-            width=LEVER_WIDTH,
-        )
-        return pn.Row(
-            levers,
-            pn.Column(
-                _on_demand(tr("ui.how_computed"), tr("method.uncertainty")),
-                self.inputs.widget("display"),
-                self.results,
-                sizing_mode="stretch_width",
-            ),
-            sizing_mode="stretch_width",
-        )
-
-
 def _default_text(inputs: Inputs, name: str) -> str:
     tr = inputs.tr
     parameter = inputs.param[name]
@@ -782,7 +617,7 @@ class Dashboard:
         self.mode1 = Mode1(inputs=self.inputs)
         self.mode2 = Mode2(inputs=self.inputs)
         self.mode3 = Mode3(inputs=self.inputs)
-        self.uncertainty = UncertaintyPage(inputs=self.inputs)
+        self.explore = ExplorationPage(inputs=self.inputs)
         self.tabs = pn.Tabs(sizing_mode="stretch_width", dynamic=True)
         self.render()
 
@@ -796,7 +631,7 @@ class Dashboard:
             self.mode1.view(),
             self.mode2.view(),
             self.mode3.view(),
-            self.uncertainty.view(),
+            self.explore.view(),
             methodik_page(self.inputs),
         ]
         self.tabs[:] = list(zip(self.page_names(), views, strict=True))

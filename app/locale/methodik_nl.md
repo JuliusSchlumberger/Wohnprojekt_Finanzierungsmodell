@@ -65,10 +65,14 @@ overschot.
 - **Modus 3, doelhuur**: de grootste totale investering die een doelhuur kan dragen,
   begrensd door de eigenvermogenseis van de bank. Grond, huis en renovatie worden daarvoor
   naar verhouding van de kostenschatting geschaald.
-- **Onzekerheid**: voor acht invoerwaarden met een bandbreedte worden varianten getrokken
-  (Latin hypercube, driehoeksverdeling met de huidige waarde als meest waarschijnlijke) en
-  wordt per variant de benodigde huur gezocht, tot op 50 cent. De rentetarieven bewegen mee
-  met de getrokken inflatie en houden hun opslag.
+- **Onzekerheid**: een vaste gevoeligheidsanalyse. Acht aannames (bankrente en de verandering
+  na 10 jaar, huurderving, omvang, rente en looptijd van de ledenleningen, omvang en rente van
+  de directe leningen van 10 jaar) worden gelijkmatig getrokken in 1.000.000 varianten (Latin
+  hypercube); alle andere invoer blijft op de standaardwaarden. Varianten onder de
+  eigenvermogenseis van de bank vallen af. Per variant wordt de benodigde huur tot op 50 cent
+  gezocht; de pagina toont variantieaandelen (lineair en totaal), de huur per aanname met de
+  laagst haalbare huur (Pareto-front), paren van aannames en de aannames van de goedkoopste
+  5 %.
 
 ## Grenzen van het model
 
@@ -80,7 +84,7 @@ overschot.
   opgezegd en na de vervaldatum wordt geen vervanging opgenomen, behalve de optionele
   herfinanciering van de ledenleningen en het opnieuw ophalen van de directe leningen van
   10 jaar.
-- **Verwachtingswaarden**: behalve op de onzekerheidspagina wordt met vaste waarden
+- **Verwachtingswaarden**: behalve in de gevoeligheidsanalyse wordt met vaste waarden
   gerekend; leegstand, renteveranderingen en inflatie zijn aannames, geen voorspellingen.
 - **Rechtsvorm** wordt niet onderscheiden; het effect ervan (bijv. hogere beheerkosten bij
   een coöperatie) kan via de invoer worden weergegeven.

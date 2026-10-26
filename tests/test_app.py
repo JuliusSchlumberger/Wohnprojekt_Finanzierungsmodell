@@ -206,20 +206,37 @@ def test_header_navigation_switches_the_visible_page_and_back():
     assert nav.value == 3
 
 
-def test_uncertainty_page_computes_on_demand_and_flags_stale_results():
-    from app.main import UncertaintyPage
+def test_report_page_data_matches_the_current_defaults():
+    from dataclasses import asdict
 
-    page = UncertaintyPage()
-    assert page.result is None
-    page.n_samples = 50
-    page.compute()
-    assert not page.stale
-    assert "Sichere Miete" in [k.label for k in page.kpi_items()]
-    for fig, help_text, _fmt in page.chart_items():
-        assert len(help_text.strip()) > 50
-        assert not charts.figure_table(fig).empty
-    page.inputs.inflation_pct = 3.0
-    assert page.stale
+    from app.explore_page import load_exploration
+
+    data = load_exploration()
+    assert data is not None, "run scripts/explore_rent.py"
+    assert data["meta"]["defaults"] == asdict(ProjectInputs())
+
+
+def test_report_page_renders_findings_and_charts_in_each_language():
+    from app.explore_page import ExplorationPage, findings
+    from app.i18n import LANGUAGES, Translator
+
+    page = ExplorationPage()
+    for language in LANGUAGES:
+        page.inputs.language = language
+        lines = findings(page.data, Translator(language))
+        assert len(lines) >= 5 and all("{" not in line for line in lines)
+        assert len(page.view().objects) > 5
+
+
+def test_report_heatmap_works_for_either_axis_order():
+    from app.explore_page import ExplorationPage
+
+    page = ExplorationPage()
+    page.pair_x, page.pair_y = "bank_spread_pp", "vacancy_rate"
+    forward = page.pair_chart().object.data[0]
+    page.pair_x, page.pair_y = "vacancy_rate", "bank_spread_pp"
+    swapped = page.pair_chart().object.data[0]
+    np.testing.assert_array_equal(np.asarray(forward.z).T, np.asarray(swapped.z))
 
 
 def test_methodology_page_lists_every_input_with_its_default():

@@ -119,12 +119,6 @@ Kennzahl erklärt, was dahintersteckt.
     "label.entry_year": "Einzug (Jahr)",
     "label.exit_year": "Auszug (Jahr)",
     "label.market_rent": "Marktmiete pro Person (€/Monat)",
-    "label.inflation_range": "Inflation (%)",
-    "label.bank_change_range": "Bankzins nach 10 J. (± Pp.)",
-    "label.vacancy_range": "Mietausfall (%)",
-    "label.renovation_range": "Sanierung (% der Schätzung)",
-    "label.running_range": "Verwaltung, Versicherung (%)",
-    "label.n_samples": "Anzahl Varianten",
     # Options of choice inputs
     "option.tenure.purchase": "Kauf",
     "option.tenure.leasehold": "Erbbaurecht",
@@ -273,25 +267,6 @@ Kennzahl erklärt, was dahintersteckt.
         "Förderdarlehen. Weil die Startliquidität von der Miete abhängt, wird es zusammen "
         "mit der Miete berechnet."
     ),
-    "info.inflation_range": "Spanne der jährlichen Inflation. Wahrscheinlichster Wert: Startseite.",
-    "info.bank_change_range": (
-        "Änderung des Bankzinses nach Ende der Zinsbindung (10 Jahre), in Prozentpunkten. "
-        "Wahrscheinlichster Wert: die Wahl auf der Startseite (sinkt −1, bleibt 0, steigt +1)."
-    ),
-    "info.vacancy_range": (
-        "Spanne des Mietausfalls ab dem 4. Jahr. Wahrscheinlichster Wert: Startseite."
-    ),
-    "info.renovation_range": (
-        "Sanierungskosten in % eurer Schätzung. 130 % heißt: die Sanierung wird 30 % teurer. "
-        "Wahrscheinlichster Wert: 100 %."
-    ),
-    "info.running_range": (
-        "Verwaltung und Versicherung in % eurer Schätzung. Wahrscheinlichster Wert: 100 %."
-    ),
-    "info.n_samples": (
-        "Mehr Varianten machen das Ergebnis stabiler, dauern aber länger (im Browser etwa "
-        "2,5 Sekunden pro 100 Varianten)."
-    ),
     # Summaries under input boxes
     "summary.costs": "Kaufnebenkosten ({rate}): **{ancillary}**  \nGesamtinvestition: **{total}**",
     "summary.costs_unknown": "Gesamtinvestition: –",
@@ -397,17 +372,6 @@ wie teuer das Haus sein darf:
 
 Die zulässige Investition ist die kleinere der beiden Grenzen.
 """,
-    "method.uncertainty": """
-Viele Annahmen kennt ihr heute nicht genau. Hier gebt ihr für die fünf wichtigsten eine
-Spanne an. Der Rechner zieht daraus viele Varianten (Latin-Hypercube-Stichprobe) und sucht
-für jede die erforderliche Miete wie in Modus 1, auf 50 Cent genau.
-
-- Innerhalb jeder Spanne ist der Wert von der Startseite am **wahrscheinlichsten**;
-  Werte zu den Rändern hin werden seltener (Dreiecksverteilung).
-- Die **sichere Miete** ist die Miete, die in 90 % der Varianten reicht.
-- Alle übrigen Annahmen kommen unverändert von der Startseite.
-- Gleiche Eingaben liefern immer dasselbe Ergebnis (fester Zufallsstartwert).
-""",
     # Chart reading guides
     "help.annual_costs": """
 Jeder Balken zeigt, wofür das Projekt in einem Jahr Geld ausgibt; die schwarze Linie sind
@@ -482,38 +446,6 @@ Vermögen des Mitglieds über die Zeit, inflationsbereinigt.
 - **Gestrichelt**: falls Einlage und Darlehen verloren gingen, z. B. bei einer Insolvenz.
   Liegt auch diese Linie über dem Vergleich, lohnt sich das Projekt selbst dann.
 """,
-    "help.rent_distribution": """
-Jeder Balken zählt, wie viele Varianten eine erforderliche Miete in diesem Bereich haben.
-
-- **Gepunktet**: die Miete aus Modus 1, mit den Werten der Startseite.
-- **Durchgezogen**: der Median; die Hälfte der Varianten braucht weniger, die Hälfte mehr.
-- **Gestrichelt**: die sichere Miete. Nur 10 % der Varianten brauchen mehr.
-
-Je breiter die Verteilung, desto mehr hängt die Miete von Annahmen ab, die ihr heute nicht
-kennt. Ein Abstand zwischen Modus-1-Miete und sicherer Miete ist ein Puffer, den ihr
-einplanen könnt.
-""",
-    "help.headroom_band": """
-Wie viel Geld über der Mindestreserve auf dem Konto liegt, wenn ihr die sichere Miete
-ansetzt, inflationsbereinigt.
-
-- **Linie**: Median über alle Varianten.
-- **Band**: 80 % der Varianten liegen darin (zwischen dem 10. und 90. Perzentil).
-- Der Puffer ist in jedem Jahr höchstens so hoch, bis der Überschuss abgeschöpft wird;
-  danach liegt er nahe null.
-
-Liegt das untere Bandende unter null, unterschreiten in diesem Jahr einige Varianten die
-Reserve. Das sind die 10 %, für die die sichere Miete nicht reicht.
-""",
-    "help.sensitivity": """
-Wie stark jede unsichere Annahme mit der erforderlichen Miete zusammenhängt
-(Rangkorrelation, −1 bis +1).
-
-- **Positiv** (blau): ist die Annahme höher, steigt die Miete, z. B. höhere Sanierungskosten.
-- **Negativ** (rot): ist die Annahme höher, sinkt die Miete. Bei der Inflation liegt das
-  daran, dass die Miete mit der Inflation wächst, Zins und Tilgung aber nicht.
-- Je länger der Balken, desto mehr lohnt es sich, diese Annahme genauer zu klären.
-""",
     # Mode 1 KPIs
     "kpi.required_rent.label": "Erforderliche Miete",
     "kpi.required_rent.help": (
@@ -521,6 +453,7 @@ Wie stark jede unsichere Annahme mit der erforderlichen Miete zusammenhängt
         "über der Mindestreserve bleibt und jeder Rückstand nach höchstens {years} Jahren "
         "beglichen ist. Danach steigt sie mit der Inflation."
     ),
+    "kpi.from_mode1": "aus Modus 1",
     "kpi.per_person_month": "pro Person und Monat",
     "kpi.rent_income.label": "Mieteinnahmen Jahr 1",
     "kpi.rent_income.help": "Miete aller Personen im ersten Jahr, vor Mietausfall.",
@@ -563,7 +496,6 @@ Wie stark jede unsichere Annahme mit der erforderlichen Miete zusammenhängt
     "kpi.project_rent.help": (
         "Erforderliche Miete aus Modus 1, pro Person und Monat im ersten Jahr."
     ),
-    "kpi.from_mode1": "aus Modus 1",
     "kpi.saving.label": "Ersparnis gegenüber Marktmiete",
     "kpi.saving.help": (
         "Marktmiete minus Projektmiete im ersten Jahr nach dem Einzug. Später wächst "
@@ -617,30 +549,6 @@ Wie stark jede unsichere Annahme mit der erforderlichen Miete zusammenhängt
     ),
     "kpi.bank_limit.none": "keine",
     # Uncertainty page
-    "unc.ranges": "Spannen",
-    "unc.compute": "Berechnen",
-    "unc.hint": "*Wahrscheinlichster Wert jeweils von der Startseite.*",
-    "unc.prompt": "Spannen einstellen und auf „Berechnen“ klicken.",
-    "unc.stale": (
-        "Annahmen wurden geändert. Die Ergebnisse unten sind veraltet; bitte neu berechnen."
-    ),
-    "kpi.base.label": "Miete ohne Unsicherheit",
-    "kpi.base.help": "Erforderliche Miete aus Modus 1, mit den Werten der Startseite.",
-    "kpi.median.label": "Median",
-    "kpi.median.help": "Die Hälfte der Varianten braucht weniger, die Hälfte mehr.",
-    "kpi.spread.label": "Spanne 10–90 %",
-    "kpi.spread.help": "80 % der Varianten brauchen eine Miete in diesem Bereich.",
-    "kpi.safe.label": "Sichere Miete",
-    "kpi.safe.help": (
-        "Reicht in 90 % der Varianten. Der Abstand zur Miete ohne Unsicherheit ist "
-        "ein Puffer für ungünstige Entwicklungen."
-    ),
-    "kpi.safe.note": "{amount} über Modus 1",
-    "kpi.failed.label": "Varianten ohne Lösung",
-    "kpi.failed.help": (
-        "In diesen Varianten reicht keine Miete bis 5.000 € pro Person; sie fehlen "
-        "in der Auswertung."
-    ),
     # Methodology page
     "methodik.inputs_heading": "## Eingaben und Standardwerte",
     "methodik.table_header": "| Bereich | Eingabe | Standard | Bedeutung |",
@@ -688,45 +596,7 @@ Wie stark jede unsichere Annahme mit der erforderlichen Miete zusammenhängt
     "chart.curve.x": "Zielmiete (€ pro Person/Monat)",
     "chart.curve.hover_rent": "Zielmiete",
     "chart.curve.hover_investment": "Investition",
-    "chart.uncertain.inflation": "Inflation",
-    "chart.uncertain.bank_rate_change_pp": "Bankzins nach 10 Jahren",
-    "chart.uncertain.vacancy_rate": "Mietausfall",
-    "chart.uncertain.renovation_factor": "Sanierungskosten",
-    "chart.uncertain.running_cost_factor": "Verwaltung und Versicherung",
-    "chart.dist.title": "Erforderliche Miete über alle Varianten",
-    "chart.dist.count": "Anzahl Varianten",
-    "chart.dist.base": "Ohne Unsicherheit",
-    "chart.dist.median": "Median",
-    "chart.dist.safe": "Sichere Miete (reicht in 90 %)",
-    "chart.dist.x": "Erforderliche Miete (€ pro Person/Monat)",
-    "chart.dist.hover_variants": "Varianten",
-    "chart.band.title": "Puffer über der Mindestreserve bei sicherer Miete",
-    "chart.band.p90": "90. Perzentil",
-    "chart.band.band": "10–90 %-Band",
-    "chart.band.median": "Median",
-    "chart.band.reserve": "Mindestreserve",
-    "chart.sens.title": "Was treibt die Unsicherheit?",
-    "chart.sens.y": "Rangkorrelation mit der Miete",
-    "chart.sens.name": "Zusammenhang",
     # Additional uncertain inputs
-    "label.member_loan_term_range": "Laufzeit Mitgliederdarlehen (Jahre)",
-    "label.member_loan_range": "Mitgliederdarlehen (% der Planung)",
-    "label.direct_loans_10y_range": "Direktkredite 10 J. (% der Planung)",
-    "info.member_loan_term_range": (
-        "Spanne der Laufzeit der Mitgliederdarlehen in ganzen Jahren. Wahrscheinlichster "
-        "Wert: Startseite (unter „Erweitert“)."
-    ),
-    "info.member_loan_range": (
-        "Wie viel Mitgliederdarlehen tatsächlich zusammenkommen, in % des geplanten Betrags. "
-        "Fehlt Geld, springt das Bankdarlehen ein. Wahrscheinlichster Wert: 100 %."
-    ),
-    "info.direct_loans_10y_range": (
-        "Wie viel 10-Jahres-Direktkredite tatsächlich eingeworben werden, in % des geplanten "
-        "Betrags. Fehlt Geld, springt das Bankdarlehen ein. Wahrscheinlichster Wert: 100 %."
-    ),
-    "chart.uncertain.member_loan_term_years": "Laufzeit Mitgliederdarlehen",
-    "chart.uncertain.member_loan_factor": "Umfang Mitgliederdarlehen",
-    "chart.uncertain.direct_loans_10y_factor": "Umfang Direktkredite 10 Jahre",
     # Rates relative to inflation, member loan payoff, nominal display
     "label.member_loan_spread_pp": "Zins Mitgliederdarlehen (Pp. über Inflation)",
     "label.direct_loan_spread_5y_pp": "Zins 5 Jahre (Pp. über Inflation)",
@@ -814,4 +684,158 @@ Wie stark jede unsichere Annahme mit der erforderlichen Miete zusammenhängt
     "option.direct_loan_rollover_pct.50": "50 %",
     "option.direct_loan_rollover_pct.75": "75 %",
     "option.direct_loan_rollover_pct.100": "100 %",
+    # Sensitivity report page
+    "explore.title": "Sensitivitäts- und Unsicherheitsanalyse",
+    "explore.intro": (
+        "Wie stark hängt die erforderliche Miete von Annahmen ab, die heute noch offen sind, "
+        "und welche Kombinationen machen das Wohnen günstig? Dafür wurden {n} Varianten "
+        "durchgerechnet (Monte-Carlo mit Latin-Hypercube-Stichprobe): Acht Annahmen wurden "
+        "gleichzeitig innerhalb der unten genannten Spannen gezogen, jeder Wert gleich "
+        "wahrscheinlich; alle übrigen Eingaben stehen auf den Standardwerten. {excluded} der "
+        "Varianten erfüllen die Eigenkapitalanforderung der Bank nicht (Einlagen plus "
+        "Nachrangdarlehen unter {min_share} der Gesamtinvestition) und sind nicht "
+        "ausgewertet; es bleiben {valid} Varianten.\n\nDie Seite ist eine feste Auswertung: "
+        "Änderungen auf der Startseite wirken hier nicht."
+    ),
+    "explore.ranges_title": "Variierte Annahmen",
+    "explore.ranges_note": (
+        "Investition = Grundstück + Haus + Sanierung. Zinsen als Abstand zur Inflation von 2 "
+        "%. Der Standardwert ist der Wert auf der Startseite; er kann außerhalb der Spanne "
+        "liegen."
+    ),
+    "explore.col.parameter": "Annahme",
+    "explore.col.range": "Spanne",
+    "explore.col.default": "Standardwert",
+    "explore.col.value": "Wert",
+    "explore.kpi.base.label": "Miete mit Standardwerten",
+    "explore.kpi.base.help": "Erforderliche Miete wie in Modus 1, mit allen Standardwerten.",
+    "explore.kpi.median.label": "Median aller Varianten",
+    "explore.kpi.median.help": "Die Hälfte der Varianten braucht weniger, die Hälfte mehr.",
+    "explore.kpi.spread.label": "Mittlere 80 % der Varianten",
+    "explore.kpi.spread.help": (
+        "10 % der Varianten liegen darunter, 10 % darüber (10. bis 90. Perzentil)."
+    ),
+    "explore.kpi.best.label": "Niedrigste gefundene Miete",
+    "explore.kpi.best.help": (
+        "Die günstigste aller ausgewerteten Varianten; ihre Annahmen stehen unter „Wichtigste"
+        " Ergebnisse“."
+    ),
+    "explore.findings_title": "Wichtigste Ergebnisse",
+    "explore.finding.drivers": (
+        "Die größten Hebel sind **{first}** ({first_share} der Streuung der Miete) und "
+        "**{second}** ({second_share}); zusammen mit {third} erklären sie {top3_share} "
+        "(Abbildung 1)."
+    ),
+    "explore.finding.linear_up": (
+        "**{name}** wirkt nahezu linear: Je höher, desto teurer; über die Spanne {range} "
+        "steigt der Median der Miete um {change}."
+    ),
+    "explore.finding.linear_down": (
+        "**{name}** wirkt nahezu linear: Je höher, desto günstiger; über die Spanne {range} "
+        "sinkt der Median der Miete um {change}."
+    ),
+    "explore.finding.nonlinear": (
+        "**{name}** wirkt nicht linear: Die Wirkung hängt davon ab, wo in der Spanne {range} "
+        "man liegt; am günstigsten ist der Median um {best}, zwischen den Enden der Spanne "
+        "liegen {change} (Abbildung 2)."
+    ),
+    "explore.finding.interactions": (
+        "Etwa {share} der Streuung entsteht erst durch das Zusammenspiel mehrerer Annahmen "
+        "(Abbildung 3)."
+    ),
+    "explore.finding.cheapest": (
+        "Die günstigsten 5 % der Varianten (Miete bis {threshold}) haben typischerweise "
+        "(Median): {profile} (Abbildung 4)."
+    ),
+    "explore.finding.best": "Die niedrigste Miete ({rent}) ergab sich bei: {profile}",
+    "label.explore_pair_x": "Annahme waagerecht",
+    "label.explore_pair_y": "Annahme senkrecht",
+    "explore.pair_same": "Bitte zwei verschiedene Annahmen wählen.",
+    "explore.missing": (
+        "Die Auswertung fehlt noch. Sie wird einmalig mit `python scripts/explore_rent.py` erzeugt."
+    ),
+    "explore.limits_title": "Grenzen der Auswertung",
+    "explore.limits": (
+        "- Die Spannen sind Annahmen, keine Prognosen; jeder Wert darin gilt als gleich "
+        "wahrscheinlich. Die Häufigkeiten sagen daher nichts darüber, wie wahrscheinlich eine"
+        " Miete ist, sondern wie viel Spielraum die Annahmen lassen.\n- Alle anderen Eingaben "
+        "bleiben auf den Standardwerten, auch Inflation (2 %), Anfangsleerstand und die "
+        "Rückzahlung der Mitgliederdarlehen aus dem Konto.\n- Gezeigt wird die erforderliche "
+        "Anfangsmiete pro Person und Monat (wie Modus 1), auf 50 Cent genau; spätere "
+        "Mietsenkungen aus Überschüssen sind nicht enthalten.\n- Der Anteil an der Streuung "
+        "beschreibt jede Annahme für sich; der Rest bis 100 % entsteht durch "
+        "Wechselwirkungen."
+    ),
+    "chart.explore.importance.title": "Abbildung 1: Welche Annahme bewegt die Miete wie stark?",
+    "chart.explore.importance.linear": "linearer Anteil",
+    "chart.explore.importance.nonlinear": "nicht linearer Anteil",
+    "chart.explore.importance.total": "Anteil insgesamt",
+    "chart.explore.importance.x": "Anteil an der Streuung der Miete",
+    "chart.explore.effects.title": "Abbildung 2: Miete in Abhängigkeit jeder einzelnen Annahme",
+    "chart.explore.effects.band": "mittlere 80 % der Varianten",
+    "chart.explore.effects.p50": "Median",
+    "chart.explore.effects.min": "niedrigste erreichbare Miete (Pareto-Front)",
+    "chart.explore.pair.title": "Abbildung 3: Zusammenspiel zweier Annahmen",
+    "chart.explore.pair.colorbar": "Median der Miete",
+    "chart.explore.cheapest.title": (
+        "Abbildung 4: Womit erreichen die günstigsten Varianten ihre Miete?"
+    ),
+    "chart.explore.cheapest.all": "alle Varianten",
+    "chart.explore.cheapest.cheapest": "günstigste 5 %",
+    "help.explore.importance": (
+        "Jeder Balken zeigt, welcher Anteil der Streuung der erforderlichen Miete sich durch "
+        "diese eine Annahme erklären lässt (Varianzanteil). Blau ist der Teil, den eine "
+        "gerade Linie erklärt; Orange der zusätzliche Teil aus einem gekrümmten Verlauf. Ist "
+        "Orange groß, gibt es einen günstigsten Bereich statt „je mehr, desto besser“. Lange "
+        "Balken sind die Annahmen, über die zu verhandeln oder die genau zu klären sich am "
+        "meisten lohnt."
+    ),
+    "help.explore.effects": (
+        "Ein Feld pro Annahme; waagerecht ihr Wert, senkrecht die erforderliche Miete aller "
+        "Varianten mit diesem Wert. Die Linie ist der Median, das Band umfasst die mittleren "
+        "80 %. Die gepunktete Linie ist die niedrigste Miete, die bei diesem Wert überhaupt "
+        "erreichbar ist, wenn die übrigen Annahmen günstig ausfallen (Pareto-Front): Besser "
+        "geht es bei diesem Wert nicht. Eine gerade Linie bedeutet lineare Wirkung, eine "
+        "Kurve oder ein Tal eine nicht lineare; ein breites Band heißt, dass die anderen "
+        "Annahmen mehr ausmachen als diese."
+    ),
+    "help.explore.pair": (
+        "Für zwei frei wählbare Annahmen zeigt jedes Feld den Median der Miete aller "
+        "Varianten, die in dieses Feld fallen; dunkler ist teurer. Verlaufen die Farbstufen "
+        "parallel zu einer Achse, wirkt nur diese Annahme. Schräge oder gebogene Stufen "
+        "zeigen, dass beide zusammenwirken: Eine schlechte Annahme lässt sich dann durch eine"
+        " bessere andere ausgleichen. Leere Felder kommen nicht vor oder sind von der Bank "
+        "ausgeschlossen."
+    ),
+    "help.explore.cheapest": (
+        "Grau zeigt, wie sich alle Varianten über die Spanne einer Annahme verteilen (wegen "
+        "der gleichverteilten Ziehung fast flach). Blau zeigt dasselbe nur für die "
+        "günstigsten {share} der Varianten. Wo Blau deutlich über Grau liegt, kommen günstige"
+        " Mieten gehäuft vor: Diese Werte gehören zu den günstigen Kombinationen. Liegen Blau"
+        " und Grau gleichauf, spielt die Annahme für eine niedrige Miete keine Rolle."
+    ),
+    "explore.param.bank_spread_pp": "Bankzins (Pp. über Inflation)",
+    "explore.short.bank_spread_pp": "Bankzins",
+    "explore.unit.bank_spread_pp": "Pp.",
+    "explore.param.bank_rate_change_pp": "Bankzins nach 10 J. (± Pp.)",
+    "explore.short.bank_rate_change_pp": "Zinsänderung nach 10 J.",
+    "explore.unit.bank_rate_change_pp": "Pp.",
+    "explore.param.vacancy_rate": "Mietausfall (%)",
+    "explore.short.vacancy_rate": "Mietausfall",
+    "explore.unit.vacancy_rate": "%",
+    "explore.param.member_loan_share": "Mitgliederdarlehen (% der Investition)",
+    "explore.short.member_loan_share": "Mitgliederdarlehen",
+    "explore.unit.member_loan_share": "% der Investition",
+    "explore.param.member_loan_spread_pp": "Zins Mitgliederdarlehen (Pp. über Inflation)",
+    "explore.short.member_loan_spread_pp": "Zins Mitgliederdarlehen",
+    "explore.unit.member_loan_spread_pp": "Pp.",
+    "explore.param.member_loan_term_years": "Laufzeit Mitgliederdarlehen (Jahre)",
+    "explore.short.member_loan_term_years": "Laufzeit Mitgliederdarlehen",
+    "explore.unit.member_loan_term_years": "Jahre",
+    "explore.param.direct_loans_10y_share": "Direktkredite 10 J. (% der Investition)",
+    "explore.short.direct_loans_10y_share": "Direktkredite 10 J.",
+    "explore.unit.direct_loans_10y_share": "% der Investition",
+    "explore.param.direct_loan_spread_10y_pp": "Zins Direktkredite 10 J. (Pp. über Inflation)",
+    "explore.short.direct_loan_spread_10y_pp": "Zins Direktkredite 10 J.",
+    "explore.unit.direct_loan_spread_10y_pp": "Pp.",
 }
