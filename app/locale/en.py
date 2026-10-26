@@ -78,8 +78,6 @@ pages at once. The **?** next to a field or a key figure explains what is behind
     "section.direct_loans": "Direct loans",
     "section.bank": "Bank and subsidy",
     "section.surplus": "Surplus and target rent",
-    "section.member_capital": "Member: capital (mode 2)",
-    "section.member_compare": "Member: comparison (mode 2)",
     "section.adv_operations": "Operations",
     "section.adv_liquidity": "Liquidity and arrears",
     "section.adv_purchase": "Purchase and ground lease",
@@ -114,10 +112,8 @@ pages at once. The **?** next to a field or a key figure explains what is behind
     "label.leasehold_rate_pct": "Ground rent (%)",
     "label.subsidy_term_years": "Term subsidised loans (years)",
     "label.member_loan_term_years": "Term member loans (years)",
-    "label.member_type": "Member type",
     "label.member_equity": "Member share (€)",
     "label.member_loan_personal": "Member loan (€)",
-    "label.entry_year": "Moving in (year)",
     "label.exit_year": "Moving out (year)",
     "label.market_rent": "Market rent per person (€/month)",
     # Options of choice inputs
@@ -131,10 +127,6 @@ pages at once. The **?** next to a field or a key figure explains what is behind
     "option.surplus_use.rent_reduction": "Rent reduction",
     "option.surplus_use.payout_15y": "Rent refund every 15 years",
     "option.surplus_use.next_project": "Solidarity transfer",
-    "option.member_type.custom": "Own values",
-    "option.member_type.low": "Little capital",
-    "option.member_type.mid": "Medium",
-    "option.member_type.high": "Much",
     # Input explanations
     "info.land_price": (
         "Purchase price of the land. Under a ground lease (Erbbaurecht) it is not bought; the "
@@ -173,9 +165,9 @@ pages at once. The **?** next to a field or a key figure explains what is behind
     ),
     "info.subsidy": (
         "Subsidised loan (Förderdarlehen, e.g. KfW or a regional development bank) repaid as "
-        "an annuity; rate and term under “Advanced” (default 1.5 % over 30 years). Only "
-        "usable for renovation costs, so at most as high as these. Does not count as "
-        "quasi-equity."
+        "an annuity; rate and term under “Advanced” (default 0.5 pp below inflation, 30 "
+        "years). Only usable for renovation costs, so at most as high as these. Does not "
+        "count as quasi-equity."
     ),
     "info.bank_repayment": (
         "Annuity: constant instalment of interest and repayment, a lot of interest at first. "
@@ -236,9 +228,6 @@ pages at once. The **?** next to a field or a key figure explains what is behind
         "This share of the reconstruction value (60 % of house plus renovation, without the "
         "land) is set aside and spent on maintenance every year, rising with inflation."
     ),
-    "info.member_type": (
-        "Presets for this member's share and member loan. “Own values” lets you set them freely."
-    ),
     "info.member_equity": (
         "This member's share in today's money. It is paid in inflation-indexed on moving in "
         "and repaid inflation-indexed on moving out."
@@ -247,7 +236,6 @@ pages at once. The **?** next to a field or a key figure explains what is behind
         "This member's member loan. It accrues interest at the member loan rate and is repaid "
         "with compound interest at the end of the term or in the year after moving out."
     ),
-    "info.entry_year": "Year of moving in, counted from the project start (0 = from the start).",
     "info.exit_year": ("Year of moving out. Share and loan come back in the year after."),
     "info.market_rent": (
         "What a comparable flat or room costs on the market per person and month, in the same "
@@ -286,7 +274,6 @@ pages at once. The **?** next to a field or a key figure explains what is behind
         "Own funds and subsidised loans ({own}) exceed the total investment ({total}). Please "
         "reduce the amounts."
     ),
-    "error.exit_before_entry": "Moving out must come after moving in.",
     "error.rent_too_low_for_own_funds": (
         "Even a house worth your own funds ({lower}) needs more than {target} rent per "
         "person. Raise the target rent or change your own funds."
@@ -581,12 +568,6 @@ The member's wealth over time, adjusted for inflation.
     "chart.curve.hover_investment": "Investment",
     # Additional uncertain inputs
     # Rates relative to inflation, member loan payoff, nominal display
-    "label.member_loan_spread_pp": "Interest member loans (pp above inflation)",
-    "label.direct_loan_spread_5y_pp": "Interest 5 years (pp above inflation)",
-    "label.direct_loan_spread_10y_pp": "Interest 10 years (pp above inflation)",
-    "label.bank_spread_pp": "Bank interest (pp above inflation)",
-    "label.subsidy_spread_pp": "Interest subsidised loans (pp above inflation)",
-    "label.alt_return_spread_pp": "Alternative return (pp above inflation)",
     "info.member_loan_spread_pp": (
         "Interest on member loans in percentage points above inflation; it is added to "
         "the loan. Example: 3 at 2 % inflation gives 5 % interest."
@@ -620,10 +601,6 @@ The member's wealth over time, adjusted for inflation.
         " rates are entered relative to inflation and move with it; once a loan is taken "
         "out, its interest and repayment stay fixed in nominal terms. That is why the "
         "first year is usually the tightest."
-    ),
-    "summary.rates": (
-        "Nominal at {inflation} inflation: bank {bank} (after 10 y. {follow_up}), subsidy"
-        " {subsidy}, direct loans {dk5} / {dk10}, member loans {member}"
     ),
     "label.member_loan_payoff": "Repayment of member loans",
     "info.member_loan_payoff": (
@@ -679,10 +656,6 @@ The member's wealth over time, adjusted for inflation.
         "the start page do not affect it."
     ),
     "explore.ranges_title": "Varied assumptions",
-    "explore.ranges_note": (
-        "Investment = land + house + renovation. Interest rates as spread above 2 % "
-        "inflation. The default is the value on the start page; it can lie outside the range."
-    ),
     "explore.col.parameter": "Assumption",
     "explore.col.range": "Range",
     "explore.col.default": "Default",
@@ -734,16 +707,6 @@ The member's wealth over time, adjusted for inflation.
         "The analysis is missing. It is generated once with `python scripts/explore_rent.py`."
     ),
     "explore.limits_title": "Limits of the analysis",
-    "explore.limits": (
-        "- The ranges are assumptions, not forecasts; every value within them counts as "
-        "equally likely. The frequencies therefore say nothing about how likely a rent is, "
-        "only how much room the assumptions leave.\n- All other inputs stay at their defaults,"
-        " including inflation (2 %), initial vacancy and repaying the member loans from the "
-        "account.\n- Shown is the required starting rent per person and month (as in mode 1), "
-        "to 50 cents; later rent reductions from surpluses are not included.\n- The share of "
-        "the spread describes each assumption on its own; the rest up to 100 % comes from "
-        "interactions."
-    ),
     "chart.explore.importance.title": "Figure 1: Which assumption moves the rent how much?",
     "chart.explore.importance.linear": "linear part",
     "chart.explore.importance.nonlinear": "non-linear part",
@@ -811,4 +774,57 @@ The member's wealth over time, adjusted for inflation.
     "explore.param.direct_loan_spread_10y_pp": "Direct loan rate 10 y. (pp above inflation)",
     "explore.short.direct_loan_spread_10y_pp": "10-year direct loan rate",
     "explore.unit.direct_loan_spread_10y_pp": "pp",
+    # Start page outline, nominal rates, member break-even
+    "label.member_loan_spread_pp": "Interest member loans (pp)",
+    "label.direct_loan_spread_5y_pp": "Interest 5 years (pp)",
+    "label.direct_loan_spread_10y_pp": "Interest 10 years (pp)",
+    "label.bank_spread_pp": "Bank interest (pp)",
+    "label.subsidy_spread_pp": "Interest subsidised loans (pp)",
+    "label.alt_return_spread_pp": "Alternative return (pp)",
+    "summary.nominal": "= {rate} nominal",
+    "summary.nominal_bank": "= {rate} nominal, after 10 years {follow_up}",
+    "section.member": "Member (mode 2)",
+    "kpi.break_even.label": "Break-even market rent",
+    "kpi.break_even.help": (
+        "From this market rent for a comparable room upwards, the member leaves the project "
+        "richer than with market rent and invested capital, at the chosen alternative return."
+    ),
+    "kpi.break_even.note": "at {gap} return gap",
+    "chart.break_even.title": "Project or market rent: when does the project pay off?",
+    "chart.break_even.subtitle": (
+        "Advantage of the project at moving out, in purchasing power of year 1"
+    ),
+    "chart.break_even.x": "Market rent for a room (€/month, year 1)",
+    "chart.break_even.y": "Alternative return minus member loan rate (pp)",
+    "chart.break_even.colorbar": "Project advantage",
+    "chart.break_even.line": "Break-even",
+    "chart.break_even.current": "chosen assumptions",
+    "chart.break_even.project_rent": "required rent (mode 1)",
+    "help.break_even": (
+        "Under which market conditions is a room in the project at the required rent from "
+        "mode 1 the better choice? Horizontally: the market rent the member would otherwise "
+        "pay for a comparable room; vertically: how much more return their money would earn "
+        "elsewhere than in the member loan (percentage points). The colour shows the wealth "
+        "advantage at moving out: blue means the project pays off, red that market rent and "
+        "investing pay off more. The black line is break-even. To its right the market rent "
+        "is high enough for the saved rent to make up for the lower return of the member "
+        "loan. The higher the return gap, the steeper the break-even: saved money then also "
+        "earns more, but equity and loan earn less in the project. The dot marks the chosen "
+        "assumptions, the dashed line the required rent from mode 1. The project itself stays"
+        " unchanged; the member loan rate is changed on the start page."
+    ),
+    "explore.ranges_note": (
+        "Investment = land + house + renovation. Interest rates as spread above {inflation} "
+        "inflation. The default is the value on the start page; it can lie outside the range."
+    ),
+    "explore.limits": (
+        "- The ranges are assumptions, not forecasts; every value within them counts as "
+        "equally likely. The frequencies therefore say nothing about how likely a rent is, "
+        "only how much room the assumptions leave.\n- All other inputs stay at their defaults,"
+        " including inflation ({inflation}), initial vacancy and how the member loans are "
+        "paid off.\n- Shown is the required starting rent per person and month (as in mode 1),"
+        " to 50 cents; later rent reductions from surpluses are not included.\n- The share of "
+        "the spread describes each assumption on its own; the rest up to 100 % comes from "
+        "interactions."
+    ),
 }

@@ -77,8 +77,6 @@ Kennzahl erklärt, was dahintersteckt.
     "section.direct_loans": "Direktkredite",
     "section.bank": "Bank und Förderung",
     "section.surplus": "Überschuss und Zielmiete",
-    "section.member_capital": "Mitglied: Kapital (Modus 2)",
-    "section.member_compare": "Mitglied: Vergleich (Modus 2)",
     "section.adv_operations": "Betrieb",
     "section.adv_liquidity": "Liquidität und Rückstände",
     "section.adv_purchase": "Kauf und Erbbaurecht",
@@ -113,10 +111,8 @@ Kennzahl erklärt, was dahintersteckt.
     "label.leasehold_rate_pct": "Erbbauzins (%)",
     "label.subsidy_term_years": "Laufzeit Förderdarlehen (Jahre)",
     "label.member_loan_term_years": "Laufzeit Mitgliederdarlehen (Jahre)",
-    "label.member_type": "Mitgliedertyp",
     "label.member_equity": "Einlage (€)",
     "label.member_loan_personal": "Mitgliederdarlehen (€)",
-    "label.entry_year": "Einzug (Jahr)",
     "label.exit_year": "Auszug (Jahr)",
     "label.market_rent": "Marktmiete pro Person (€/Monat)",
     # Options of choice inputs
@@ -130,10 +126,6 @@ Kennzahl erklärt, was dahintersteckt.
     "option.surplus_use.rent_reduction": "Mietsenkung",
     "option.surplus_use.payout_15y": "Mietrückzahlung alle 15 Jahre",
     "option.surplus_use.next_project": "Solidartransfer",
-    "option.member_type.custom": "Eigene Angaben",
-    "option.member_type.low": "Wenig Kapital",
-    "option.member_type.mid": "Mittel",
-    "option.member_type.high": "Viel",
     # Input explanations
     "info.land_price": (
         "Kaufpreis des Grundstücks. Bei Erbbaurecht wird es nicht gekauft; der Betrag gilt "
@@ -172,9 +164,9 @@ Kennzahl erklärt, was dahintersteckt.
     ),
     "info.subsidy": (
         "Förderdarlehen (z. B. KfW oder Landesförderbank) als Annuität; Zins und Laufzeit "
-        "unter „Erweitert“ (Standard 1,5 % über 30 Jahre). Nur für Sanierungskosten nutzbar, "
-        "deshalb höchstens so hoch wie diese. "
-        "Zählt nicht als eigenkapitalähnlich."
+        "unter „Erweitert“ (Standard 0,5 Pp. unter der Inflation, 30 Jahre). Nur für "
+        "Sanierungskosten nutzbar, deshalb höchstens so hoch wie diese. Zählt nicht als "
+        "eigenkapitalähnlich."
     ),
     "info.bank_repayment": (
         "Annuität: gleichbleibende Rate aus Zins und Tilgung, anfangs viel Zins. "
@@ -238,10 +230,6 @@ Kennzahl erklärt, was dahintersteckt.
         "wird jedes Jahr für Instandhaltung zurückgelegt und ausgegeben, mit der Inflation "
         "steigend."
     ),
-    "info.member_type": (
-        "Voreinstellungen für Einlage und Mitgliederdarlehen dieses Mitglieds. "
-        "„Eigene Angaben“ lässt die Werte frei einstellen."
-    ),
     "info.member_equity": (
         "Einlage dieses Mitglieds in heutigem Geld. Sie wird beim Einzug "
         "inflationsindexiert eingezahlt und beim Auszug inflationsindexiert zurückgezahlt."
@@ -251,7 +239,6 @@ Kennzahl erklärt, was dahintersteckt.
         "thesauriert und am Ende der Laufzeit oder im Jahr nach dem Auszug samt Zinseszins "
         "zurückgezahlt."
     ),
-    "info.entry_year": "Jahr des Einzugs, gezählt ab Projektstart (0 = von Anfang an).",
     "info.exit_year": "Jahr des Auszugs. Einlage und Darlehen kommen im Jahr danach zurück.",
     "info.market_rent": (
         "Was eine vergleichbare Wohnung bzw. ein Zimmer am Markt pro Person und Monat "
@@ -291,7 +278,6 @@ Kennzahl erklärt, was dahintersteckt.
         "Eigenmittel und Förderdarlehen ({own}) übersteigen die "
         "Gesamtinvestition ({total}). Bitte Beträge reduzieren."
     ),
-    "error.exit_before_entry": "Der Auszug muss nach dem Einzug liegen.",
     "error.rent_too_low_for_own_funds": (
         "Schon ein Haus in Höhe eurer Eigenmittel ({lower}) braucht mehr als "
         "{target} Miete pro Person. Zielmiete erhöhen oder Eigenmittel ändern."
@@ -598,12 +584,6 @@ Vermögen des Mitglieds über die Zeit, inflationsbereinigt.
     "chart.curve.hover_investment": "Investition",
     # Additional uncertain inputs
     # Rates relative to inflation, member loan payoff, nominal display
-    "label.member_loan_spread_pp": "Zins Mitgliederdarlehen (Pp. über Inflation)",
-    "label.direct_loan_spread_5y_pp": "Zins 5 Jahre (Pp. über Inflation)",
-    "label.direct_loan_spread_10y_pp": "Zins 10 Jahre (Pp. über Inflation)",
-    "label.bank_spread_pp": "Bankzins (Pp. über Inflation)",
-    "label.subsidy_spread_pp": "Zins Förderdarlehen (Pp. über Inflation)",
-    "label.alt_return_spread_pp": "Alternativrendite (Pp. über Inflation)",
     "info.member_loan_spread_pp": (
         "Zins auf Mitgliederdarlehen in Prozentpunkten über der Inflation; er wird dem "
         "Darlehen gutgeschrieben. Beispiel: 3 bei 2 % Inflation ergibt 5 % Zins."
@@ -637,10 +617,6 @@ Vermögen des Mitglieds über die Zeit, inflationsbereinigt.
         "Zinsen werden relativ zur Inflation eingegeben und ändern sich mit ihr; ist ein "
         "Darlehen abgeschlossen, bleiben Zins und Tilgung nominal fest. Deshalb ist meist"
         " das erste Jahr am engsten."
-    ),
-    "summary.rates": (
-        "Nominal bei {inflation} Inflation: Bank {bank} (nach 10 J. {follow_up}), "
-        "Förderung {subsidy}, Direktkredite {dk5} / {dk10}, Mitgliederdarlehen {member}"
     ),
     "label.member_loan_payoff": "Rückzahlung der Mitgliederdarlehen",
     "info.member_loan_payoff": (
@@ -679,11 +655,6 @@ Vermögen des Mitglieds über die Zeit, inflationsbereinigt.
         "getilgt. Gilt auch für Direktkredite, die die Mitgliederdarlehen ablösen. 5-Jahres-"
         "Direktkredite werden immer getilgt."
     ),
-    "option.direct_loan_rollover_pct.0": "0 %",
-    "option.direct_loan_rollover_pct.25": "25 %",
-    "option.direct_loan_rollover_pct.50": "50 %",
-    "option.direct_loan_rollover_pct.75": "75 %",
-    "option.direct_loan_rollover_pct.100": "100 %",
     # Sensitivity report page
     "explore.title": "Sensitivitäts- und Unsicherheitsanalyse",
     "explore.intro": (
@@ -698,11 +669,6 @@ Vermögen des Mitglieds über die Zeit, inflationsbereinigt.
         "Änderungen auf der Startseite wirken hier nicht."
     ),
     "explore.ranges_title": "Variierte Annahmen",
-    "explore.ranges_note": (
-        "Investition = Grundstück + Haus + Sanierung. Zinsen als Abstand zur Inflation von 2 "
-        "%. Der Standardwert ist der Wert auf der Startseite; er kann außerhalb der Spanne "
-        "liegen."
-    ),
     "explore.col.parameter": "Annahme",
     "explore.col.range": "Spanne",
     "explore.col.default": "Standardwert",
@@ -755,17 +721,6 @@ Vermögen des Mitglieds über die Zeit, inflationsbereinigt.
         "Die Auswertung fehlt noch. Sie wird einmalig mit `python scripts/explore_rent.py` erzeugt."
     ),
     "explore.limits_title": "Grenzen der Auswertung",
-    "explore.limits": (
-        "- Die Spannen sind Annahmen, keine Prognosen; jeder Wert darin gilt als gleich "
-        "wahrscheinlich. Die Häufigkeiten sagen daher nichts darüber, wie wahrscheinlich eine"
-        " Miete ist, sondern wie viel Spielraum die Annahmen lassen.\n- Alle anderen Eingaben "
-        "bleiben auf den Standardwerten, auch Inflation (2 %), Anfangsleerstand und die "
-        "Rückzahlung der Mitgliederdarlehen aus dem Konto.\n- Gezeigt wird die erforderliche "
-        "Anfangsmiete pro Person und Monat (wie Modus 1), auf 50 Cent genau; spätere "
-        "Mietsenkungen aus Überschüssen sind nicht enthalten.\n- Der Anteil an der Streuung "
-        "beschreibt jede Annahme für sich; der Rest bis 100 % entsteht durch "
-        "Wechselwirkungen."
-    ),
     "chart.explore.importance.title": "Abbildung 1: Welche Annahme bewegt die Miete wie stark?",
     "chart.explore.importance.linear": "linearer Anteil",
     "chart.explore.importance.nonlinear": "nicht linearer Anteil",
@@ -838,4 +793,65 @@ Vermögen des Mitglieds über die Zeit, inflationsbereinigt.
     "explore.param.direct_loan_spread_10y_pp": "Zins Direktkredite 10 J. (Pp. über Inflation)",
     "explore.short.direct_loan_spread_10y_pp": "Zins Direktkredite 10 J.",
     "explore.unit.direct_loan_spread_10y_pp": "Pp.",
+    # Start page outline, nominal rates, member break-even
+    "label.member_loan_spread_pp": "Zins Mitgliederdarlehen (Pp.)",
+    "label.direct_loan_spread_5y_pp": "Zins 5 Jahre (Pp.)",
+    "label.direct_loan_spread_10y_pp": "Zins 10 Jahre (Pp.)",
+    "label.bank_spread_pp": "Bankzins (Pp.)",
+    "label.subsidy_spread_pp": "Zins Förderdarlehen (Pp.)",
+    "label.alt_return_spread_pp": "Alternativrendite (Pp.)",
+    "summary.nominal": "= {rate} nominal",
+    "summary.nominal_bank": "= {rate} nominal, nach 10 Jahren {follow_up}",
+    "section.member": "Mitglied (Modus 2)",
+    "kpi.break_even.label": "Gleichstand bei Marktmiete",
+    "kpi.break_even.help": (
+        "Ab dieser Marktmiete für ein vergleichbares Zimmer ist das Mitglied bei Auszug im "
+        "Projekt reicher als mit Marktmiete und angelegtem Kapital, bei der eingestellten "
+        "Alternativrendite."
+    ),
+    "kpi.break_even.note": "bei {gap} Renditedifferenz",
+    "chart.break_even.title": "Projekt oder Marktmiete: Wann lohnt sich das Projekt?",
+    "chart.break_even.subtitle": "Vorteil des Projekts bei Auszug, in Kaufkraft von Jahr 1",
+    "chart.break_even.x": "Marktmiete für ein Zimmer (€/Monat, Jahr 1)",
+    "chart.break_even.y": "Alternativrendite minus Zins Mitgliederdarlehen (Pp.)",
+    "chart.break_even.colorbar": "Vorteil Projekt",
+    "chart.break_even.line": "Gleichstand",
+    "chart.break_even.current": "eingestellte Annahmen",
+    "chart.break_even.project_rent": "erforderliche Miete (Modus 1)",
+    "help.break_even": (
+        "Für welche Marktbedingungen ist ein Zimmer im Projekt zur erforderlichen Miete aus "
+        "Modus 1 die bessere Wahl? Waagerecht steht die Marktmiete, die das Mitglied sonst "
+        "für ein vergleichbares Zimmer zahlen würde; senkrecht, wie viel mehr Rendite sein "
+        "Geld anderswo brächte als im Mitgliederdarlehen (Prozentpunkte). Die Farbe zeigt den"
+        " Vermögensvorteil bei Auszug: Blau heißt, das Projekt lohnt sich, Rot, Marktmiete "
+        "und Anlegen lohnen sich mehr. Die schwarze Linie ist der Gleichstand. Rechts von ihr"
+        " ist die Marktmiete so hoch, dass die gesparte Miete einen Renditenachteil des "
+        "Mitgliederdarlehens ausgleicht. Je höher die Renditedifferenz, desto steiler ist der"
+        " Gleichstand: Das gesparte Geld wird dann ebenfalls besser verzinst, aber Einlage "
+        "und Darlehen bringen im Projekt weniger. Der Punkt markiert die eingestellten "
+        "Annahmen, die gestrichelte Linie die erforderliche Miete aus Modus 1. Das Projekt "
+        "selbst bleibt unverändert; der Zins der Mitgliederdarlehen wird über die Startseite "
+        "geändert."
+    ),
+    "option.direct_loan_rollover_pct.0": "0%",
+    "option.direct_loan_rollover_pct.25": "25%",
+    "option.direct_loan_rollover_pct.50": "50%",
+    "option.direct_loan_rollover_pct.75": "75%",
+    "option.direct_loan_rollover_pct.100": "100%",
+    "explore.ranges_note": (
+        "Investition = Grundstück + Haus + Sanierung. Zinsen als Abstand zur Inflation von "
+        "{inflation}. Der Standardwert ist der Wert auf der Startseite; er kann außerhalb der"
+        " Spanne liegen."
+    ),
+    "explore.limits": (
+        "- Die Spannen sind Annahmen, keine Prognosen; jeder Wert darin gilt als gleich "
+        "wahrscheinlich. Die Häufigkeiten sagen daher nichts darüber, wie wahrscheinlich eine"
+        " Miete ist, sondern wie viel Spielraum die Annahmen lassen.\n- Alle anderen Eingaben "
+        "bleiben auf den Standardwerten, auch Inflation ({inflation}), Anfangsleerstand und "
+        "die Art der Rückzahlung der Mitgliederdarlehen.\n- Gezeigt wird die erforderliche "
+        "Anfangsmiete pro Person und Monat (wie Modus 1), auf 50 Cent genau; spätere "
+        "Mietsenkungen aus Überschüssen sind nicht enthalten.\n- Der Anteil an der Streuung "
+        "beschreibt jede Annahme für sich; der Rest bis 100 % entsteht durch "
+        "Wechselwirkungen."
+    ),
 }

@@ -16,7 +16,7 @@ from app.layout import ACCENT, START_BOX_WIDTH, Kpi, box, chart_block, kpi_grid
 from app.widgets import ADVANCED_SECTIONS, SECTIONS, Inputs, with_info
 from model import Result, Scenario, max_investment, required_rent, simulate
 from model.cashflow import capital_structure
-from model.member import member_view
+from model.member import break_even_grid, break_even_rent, member_view
 from model.presets import build_scenario
 from model.solve import binding_year, is_affordable
 
@@ -38,11 +38,9 @@ MODE1_LEVERS = [
     "inflation_pct",
 ]
 MODE2_LEVERS = [
-    "member_type",
     "member_equity",
     "member_loan_personal",
     "member_loan_spread_pp",
-    "entry_year",
     "exit_year",
     "market_rent",
     "alt_return_spread_pp",
@@ -62,6 +60,9 @@ MODE3_LEVERS = [
 ]
 CURVE_RENTS_EUR_PERSON = np.arange(200.0, 1_200.01, 50.0)
 MIN_INVESTMENT_EUR = 50_000.0
+# Break-even map: market rents as multiples of the required rent, return gaps in pp.
+BREAK_EVEN_RENT_RANGE = (0.5, 1.9)
+BREAK_EVEN_GAPS_PP = np.arange(-3.0, 6.01, 0.25)
 LEVER_WIDTH = 360
 
 
@@ -159,7 +160,11 @@ class _Page(param.Parameterized):
     def figures(self) -> pn.viewable.Viewable:
         if self.result is None:
             return pn.Spacer(height=0)
-        blocks = [chart_block(fig, text, self.tr) for fig, text in self.chart_items()]
+        blocks = [
+            chart_block(fig, text, self.tr, table=table)
+            for fig, text, *rest in self.chart_items()
+            for table in [rest[0] if rest else None]
+        ]
         return pn.Column(*blocks, sizing_mode="stretch_width")
 
     def view(self) -> pn.viewable.Viewable:
@@ -334,6 +339,8 @@ class Mode2(_Page):
     """One member's wealth in the project versus market rent and investing elsewhere."""
 
     view_table = param.DataFrame(default=None, allow_None=True)
+    break_even = param.DataFrame(default=None, allow_None=True)
+    break_even_rent = param.Number(default=None, allow_None=True)
 
     levers = MODE2_LEVERS
     method_key = "method.mode2"
@@ -342,25 +349,32 @@ class Mode2(_Page):
         if message := self._input_error():
             self._fail(message)
             return
-        if self.inputs.entry_year >= self.inputs.exit_year:
-            self._fail(self.tr("error.exit_before_entry"))
-            return
         try:
             scenario = build_scenario(self.inputs.to_project())
             result = simulate(scenario, required_rent(scenario))
         except ValueError as exc:
             self._fail(str(exc))
             return
+        member = self.inputs.to_member()
+        rent = result.metrics["rent_per_person"]
         self.param.update(
             scenario=scenario,
             result=result,
-            view_table=member_view(scenario, result, self.inputs.to_member()),
+            view_table=member_view(scenario, result, member),
+            break_even=break_even_grid(
+                scenario,
+                result,
+                member,
+                np.linspace(BREAK_EVEN_RENT_RANGE[0] * rent, BREAK_EVEN_RENT_RANGE[1] * rent, 29),
+                BREAK_EVEN_GAPS_PP,
+            ),
+            break_even_rent=break_even_rent(scenario, result, member),
             error="",
         )
 
     def _fail(self, message: str) -> None:
         super()._fail(message)
-        self.view_table = None
+        self.param.update(view_table=None, break_even=None, break_even_rent=None)
 
     def kpi_items(self) -> list[Kpi]:
         tr = self.tr
@@ -374,6 +388,13 @@ class Mode2(_Page):
                 tr.eur(self.result.metrics["rent_per_person"], 2),
                 tr("kpi.project_rent.help"),
                 note=tr("kpi.from_mode1"),
+            ),
+            Kpi(
+                tr("kpi.break_even.label"),
+                tr.eur(self.break_even_rent),
+                tr("kpi.break_even.help"),
+                note=tr("kpi.break_even.note", gap=f"{tr.number(self.return_gap_pp, 1)} pp"),
+                tone="good" if self.inputs.market_rent >= self.break_even_rent else "warning",
             ),
             Kpi(
                 tr("kpi.saving.label"),
@@ -421,7 +442,22 @@ class Mode2(_Page):
             return []
         tr = self.tr
         figure = charts.member_wealth(self.view_table, tr, self.real)
-        return [(figure, self._help("help.member_wealth"))]
+        grid = self.break_even
+        rent = self.result.metrics["rent_per_person"]
+        current = (self.inputs.market_rent, self.return_gap_pp)
+        heatmap = charts.break_even(grid, current, rent, tr)
+        table = grid.map(tr.eur)
+        table.columns = [tr.eur(c) for c in grid.columns]
+        table.index = [f"{tr.number(g, 2)} pp" for g in grid.index]
+        return [
+            (figure, self._help("help.member_wealth")),
+            (heatmap, tr("help.break_even"), table),
+        ]
+
+    @property
+    def return_gap_pp(self) -> float:
+        m = self.inputs.to_member()
+        return 100 * (m.alt_return - m.member_loan_rate)
 
 
 class Mode3(_Page):

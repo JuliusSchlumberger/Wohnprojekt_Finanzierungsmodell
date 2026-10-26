@@ -140,27 +140,34 @@ def test_mode2_default_member_is_compared_against_market_rent():
     assert "Vorsorgevorteil" in [k.label for k in mode2.kpi_items()]
 
 
-def test_mode2_member_preset_sets_capital_and_changes_result():
+def test_mode2_break_even_rent_balances_project_and_market():
+    from dataclasses import replace
+
+    from model.member import member_view
+
     mode2 = Mode2()
-    before = mode2.view_table["alternative"].iloc[0]
-    mode2.inputs.member_type = "high"
-    assert mode2.inputs.member_loan_personal == 40_000
-    assert mode2.view_table["alternative"].iloc[0] > before
+    member = replace(mode2.inputs.to_member(), market_rent=mode2.break_even_rent)
+    view = member_view(mode2.scenario, mode2.result, member)
+    assert abs(view["advantage"].iloc[-1]) < 1.0
 
 
-def test_mode2_exit_before_entry_shows_error():
-    mode2 = Mode2()
-    mode2.inputs.param.update(entry_year=30, exit_year=20)
-    assert mode2.view_table is None
-    assert "Auszug" in mode2.error
+def test_mode2_higher_market_rent_favours_the_project():
+    grid = Mode2().break_even
+    assert (grid.diff(axis=1).iloc[:, 1:] > 0).all().all()
+
+
+def test_rate_inputs_show_their_nominal_rate():
+    inputs = Inputs()
+    inputs.inflation_pct = 3.0
+    note = inputs._nominal_note("member_loan_spread_pp")
+    assert inputs.tr.pct((3.0 + inputs.member_loan_spread_pp) / 100) in note
 
 
 def test_every_chart_has_reading_help_and_a_value_table():
     for page in (Mode1(), Mode2(), Mode3()):
-        for fig, help_text in page.chart_items():
+        for fig, help_text, *table in page.chart_items():
             assert len(help_text.strip()) > 50
-            table = charts.figure_table(fig)
-            assert not table.empty
+            assert not (table[0] if table else charts.figure_table(fig)).empty
 
 
 def test_start_page_boxes_have_equal_height_and_place_every_input_once():

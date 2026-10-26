@@ -19,12 +19,15 @@ def _spread(nominal_rate: float) -> float:
     return round(100 * (nominal_rate - _D.inflation), 2)
 
 
-MEMBER_PRESETS = {
-    "custom": None,
-    "low": (2_000.0, 2_000.0),
-    "mid": (2_000.0, 20_000.0),
-    "high": (2_000.0, 40_000.0),
-}
+# Rate inputs in pp above inflation, shown with their nominal rate underneath.
+SPREAD_INPUTS = (
+    "member_loan_spread_pp",
+    "direct_loan_spread_5y_pp",
+    "direct_loan_spread_10y_pp",
+    "bank_spread_pp",
+    "subsidy_spread_pp",
+    "alt_return_spread_pp",
+)
 
 # Choice inputs: stored value -> text key suffix of its display name.
 OPTIONS = {
@@ -37,7 +40,6 @@ OPTIONS = {
         "payout_15y": "payout_15y",
         "next_project": "next_project",
     },
-    "member_type": {key: key for key in MEMBER_PRESETS},
     "member_loan_payoff": {
         "liquidity": "liquidity",
         "bank": "bank",
@@ -92,10 +94,8 @@ WIDGETS = {
     "display": _RADIO,
     "vacancy_pct": _SLIDER,
     "initial_vacancy_pct": _SLIDER,
-    "member_type": {"type": pn.widgets.Select},
     "member_equity": _EUR,
     "member_loan_personal": _EUR,
-    "entry_year": _INT,
     "exit_year": _INT,
     "market_rent": {"type": pn.widgets.FloatSlider, "step": 10},
     "alt_return_spread_pp": _SLIDER,
@@ -114,7 +114,7 @@ SECTIONS = {
         "equity_per_person",
         "member_loan_per_person",
         "member_loan_spread_pp",
-        "min_equity_like_pct",
+        "member_loan_payoff",
     ],
     "direct_loans": [
         "direct_loans_5y",
@@ -124,15 +124,21 @@ SECTIONS = {
         "direct_loan_rollover_pct",
     ],
     "bank": [
-        "subsidy",
         "bank_spread_pp",
         "bank_repayment",
         "bank_term_years",
         "bank_rate_change",
+        "min_equity_like_pct",
+        "subsidy",
     ],
     "surplus": ["surplus_use", "target_rent"],
-    "member_capital": ["member_type", "member_equity", "member_loan_personal"],
-    "member_compare": ["entry_year", "exit_year", "market_rent", "alt_return_spread_pp"],
+    "member": [
+        "member_equity",
+        "member_loan_personal",
+        "exit_year",
+        "market_rent",
+        "alt_return_spread_pp",
+    ],
 }
 
 ADVANCED_SECTIONS = {
@@ -140,7 +146,7 @@ ADVANCED_SECTIONS = {
     "adv_liquidity": ["min_liquidity_months", "max_arrears_years"],
     "adv_purchase": ["ancillary_cost_pct", "leasehold_rate_pct"],
     "adv_subsidy": ["subsidy_spread_pp", "subsidy_term_years"],
-    "adv_member_loans": ["member_loan_term_years", "member_loan_payoff"],
+    "adv_member_loans": ["member_loan_term_years"],
 }
 
 
@@ -181,7 +187,7 @@ class Inputs(param.Parameterized):
     inflation_pct = param.Number(100 * _D.inflation, bounds=(0, 6), step=0.1)
     surplus_use = param.Selector(objects=list(OPTIONS["surplus_use"]), default=_D.surplus_use)
     min_equity_like_pct = param.Number(20.0, bounds=(0, 100), step=1)
-    target_rent = param.Number(500.0, bounds=(100, 2_000))
+    target_rent = param.Number(800.0, bounds=(100, 2_000))
     maintenance_reserve_pct = param.Number(
         100 * _D.maintenance_reserve_rate, bounds=(1.5, 4), step=0.1
     )
@@ -200,10 +206,8 @@ class Inputs(param.Parameterized):
         objects=list(OPTIONS["member_loan_payoff"]), default=_D.member_loan_payoff
     )
     display = param.Selector(objects=list(OPTIONS["display"]), default="real")
-    member_type = param.Selector(objects=list(MEMBER_PRESETS), default="custom")
     member_equity = param.Number(_M.equity, bounds=(0, None))
     member_loan_personal = param.Number(_M.member_loan, bounds=(0, None))
-    entry_year = param.Integer(_M.entry_year, bounds=(0, 49))
     exit_year = param.Integer(_M.exit_year, bounds=(1, 50))
     market_rent = param.Number(_M.market_rent, bounds=(100, 2_000))
     alt_return_spread_pp = param.Number(_spread(_M.alt_return), bounds=(-3, 10), step=0.1)
@@ -276,17 +280,10 @@ class Inputs(param.Parameterized):
             member_loan=self.member_loan_personal,
             member_loan_rate=self._nominal(self.member_loan_spread_pp),
             member_loan_term_years=self.member_loan_term_years,
-            entry_year=self.entry_year,
             exit_year=self.exit_year,
             market_rent=self.market_rent,
             alt_return=(self.inflation_pct + self.alt_return_spread_pp) / 100,
         )
-
-    @param.depends("member_type", watch=True)
-    def _apply_member_preset(self) -> None:
-        preset = MEMBER_PRESETS[self.member_type]
-        if preset is not None:
-            self.param.update(member_equity=preset[0], member_loan_personal=preset[1])
 
     def input_names(self) -> list[str]:
         """Inputs that change results; language and display only change how they are shown."""
@@ -302,7 +299,35 @@ class Inputs(param.Parameterized):
                 f"<div style='font-size:13px'>{self.param[name].label}</div>", margin=(4, 10, 0, 10)
             )
             widget = pn.Column(label, widget, margin=0)
-        return with_info(widget, self.tr(f"info.{name}"))
+        shown = with_info(widget, self.tr(f"info.{name}"))
+        if name not in SPREAD_INPUTS:
+            return shown
+        note = pn.bind(
+            self._nominal_note,
+            name,
+            self.param.inflation_pct,
+            self.param[name],
+            self.param.bank_rate_change,
+        )
+        return pn.Column(
+            shown,
+            pn.pane.Markdown(note, styles={"font-size": "12px"}, margin=(-12, 10, 0, 10)),
+            margin=0,
+        )
+
+    def _nominal_note(self, name: str, *_values) -> str:
+        tr = self.tr
+        rate = self._nominal(getattr(self, name))
+        if name == "alt_return_spread_pp":
+            rate = (self.inflation_pct + self.alt_return_spread_pp) / 100
+        if name != "bank_spread_pp":
+            return tr("summary.nominal", rate=tr.pct(rate))
+        follow_up = max(rate + self.bank_rate_change * BANK_RATE_CHANGE_STEP, 0.0)
+        return tr(
+            "summary.nominal_bank",
+            rate=tr.pct(rate),
+            follow_up=tr.pct(follow_up),
+        )
 
     def widgets(self, names: list[str]) -> list[pn.viewable.Viewable]:
         return [self.widget(n) for n in names]
@@ -326,32 +351,6 @@ class Inputs(param.Parameterized):
             )
         )
 
-    @param.depends(
-        "inflation_pct",
-        "bank_spread_pp",
-        "bank_rate_change",
-        "subsidy_spread_pp",
-        "direct_loan_spread_5y_pp",
-        "direct_loan_spread_10y_pp",
-        "member_loan_spread_pp",
-    )
-    def rates_summary(self) -> pn.viewable.Viewable:
-        tr, p = self.tr, self.to_project()
-        follow_up = max(p.bank_rate + p.bank_rate_change * BANK_RATE_CHANGE_STEP, 0.0)
-        return pn.pane.Markdown(
-            tr(
-                "summary.rates",
-                inflation=tr.pct(p.inflation),
-                bank=tr.pct(p.bank_rate),
-                follow_up=tr.pct(follow_up),
-                subsidy=tr.pct(p.subsidy_rate),
-                dk5=tr.pct(p.direct_loan_rate_5y),
-                dk10=tr.pct(p.direct_loan_rate_10y),
-                member=tr.pct(p.member_loan_rate),
-            ),
-            styles={"font-size": "12px"},
-        )
-
     @param.depends("persons", "equity_per_person", "member_loan_per_person")
     def capital_summary(self) -> pn.viewable.Viewable:
         tr = self.tr
@@ -370,7 +369,6 @@ class Inputs(param.Parameterized):
         extras = {
             "house": [self.cost_summary],
             "own_funds": [self.capital_summary],
-            "group": [self.rates_summary],
         }
         boxes = [
             box(

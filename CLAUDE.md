@@ -30,6 +30,7 @@
 ## Baselines
 
 - `required_rent(example_scenario())` = 546.31 EUR per person.
-- `required_rent(build_scenario(ProjectInputs()))` = 861.05 EUR per person (app defaults;
-  deciding year 18, member-loan arrears).
+- `required_rent(build_scenario(ProjectInputs()))` = 843.47 EUR per person (app defaults;
+  deciding year 1, reserve).
+- Mode 2 defaults: break-even market rent 848.80 EUR per person at 0 pp return gap.
 - trias reference case: all 12 series equal to machine precision, years 1-30.

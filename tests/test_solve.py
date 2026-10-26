@@ -70,12 +70,14 @@ def test_build_scenario_charges_purchase_costs_on_land_only_when_bought():
 
 
 def test_bank_rate_change_moves_follow_up_rate_by_one_point():
-    bank = build_scenario(ProjectInputs(bank_rate_change=1)).tranches[-1]
+    tranches = build_scenario(ProjectInputs(bank_rate_change=1)).tranches
+    (bank,) = [tr for tr in tranches if tr.name == "bank"]
     assert bank.rate_in_year(11) == pytest.approx(bank.rate_in_year(10) + 0.01)
 
 
 def _app_defaults():
-    s = build_scenario(ProjectInputs())
+    # The arrears and surplus rules act on member loans paid from the account.
+    s = build_scenario(ProjectInputs(member_loan_payoff="liquidity"))
     return s, simulate(s, required_rent(s)).table
 
 
@@ -185,16 +187,19 @@ def test_binding_year_is_where_a_slightly_lower_rent_fails():
 
     no_member_loans = build_scenario(ProjectInputs(member_loans=0.0))
     assert binding_year(no_member_loans, required_rent(no_member_loans)) == (1, "reserve")
-    late = build_scenario(ProjectInputs(member_loan_term_years=10))
+    late = build_scenario(ProjectInputs(member_loan_term_years=10, member_loan_payoff="liquidity"))
     assert binding_year(late, required_rent(late))[1] == "arrears"
 
 
 def test_member_loan_term_moves_the_lump_repayment():
     for term in (10, 20):
-        s = build_scenario(ProjectInputs(member_loan_term_years=term))
+        p = ProjectInputs(member_loan_term_years=term)
+        s = build_scenario(p)
         ml = simulate(s, 900.0).tranches["member_loans"]
         assert int(ml["repayment"].idxmax()) == term
-        assert ml["repayment"].max() == pytest.approx(400_000 * 1.05**term)
+        assert ml["repayment"].max() == pytest.approx(
+            p.member_loans * (1 + p.member_loan_rate) ** term
+        )
 
 
 @pytest.mark.parametrize("payoff", ["bank", "direct_loans"])

@@ -62,3 +62,17 @@ def test_personal_member_loan_follows_the_chosen_term(project):
     diff = member_view(s, res, with_loan)["project"] - member_view(s, res, base)["project"]
     deflator = res.table["cost_index"] / res.table["cost_index"].loc[1]
     assert diff.loc[20] == pytest.approx(10_000 * 1.05**8 / deflator.loc[20])
+
+
+def test_break_even_grid_matches_direct_evaluation(project):
+    from model.member import break_even_grid, break_even_rent
+
+    s, res = project
+    m = MemberInputs()
+    grid = break_even_grid(s, res, m, np.array([500.0, 950.0, 1400.0]), np.array([-1.0, 2.0]))
+    direct = member_view(
+        s, res, replace(m, market_rent=950.0, alt_return=m.member_loan_rate + 0.02)
+    )
+    assert grid.loc[2.0, 950.0] == pytest.approx(direct["advantage"].iloc[-1])
+    at_break_even = member_view(s, res, replace(m, market_rent=break_even_rent(s, res, m)))
+    assert at_break_even["advantage"].iloc[-1] == pytest.approx(0.0, abs=1e-6)

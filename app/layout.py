@@ -20,7 +20,7 @@ BOX = {
     "padding": "12px 16px",
 }
 TONES = {"good": "#0ca30c", "warning": "#fab219", "critical": "#d03b3b"}
-START_BOX_HEIGHT = 400
+START_BOX_HEIGHT = 470
 ADVANCED_BOX_HEIGHT = 250
 START_BOX_WIDTH = 300
 

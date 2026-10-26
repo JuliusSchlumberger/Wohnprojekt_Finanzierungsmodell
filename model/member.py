@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 import numpy as np
 import pandas as pd
@@ -26,12 +26,12 @@ class MemberInputs:
 
     equity: float = 2_000.0
     member_loan: float = 20_000.0
-    member_loan_rate: float = 0.05
+    member_loan_rate: float = 0.055
     member_loan_term_years: int = 15
     entry_year: int = 0
     exit_year: int = 20
-    market_rent: float = 650.0
-    alt_return: float = 0.05
+    market_rent: float = 800.0
+    alt_return: float = 0.055
 
 
 def member_view(scenario: Scenario, result: Result, m: MemberInputs) -> pd.DataFrame:
@@ -95,3 +95,46 @@ def member_view(scenario: Scenario, result: Result, m: MemberInputs) -> pd.DataF
     out["advantage"] = out["project"] - out["alternative"]
     out["deflator"] = deflator
     return out
+
+
+def _final_advantage(scenario: Scenario, result: Result, m: MemberInputs) -> float:
+    return float(member_view(scenario, result, m)["advantage"].iloc[-1])
+
+
+def _advantage_line(scenario: Scenario, result: Result, m: MemberInputs) -> tuple[float, float]:
+    """Advantage at market rent 0 and its change per EUR of market rent.
+
+    Exact because the advantage is linear in the market rent: the rent saving
+    is market minus project rent and is invested the same way every year.
+    """
+    at_zero = _final_advantage(scenario, result, replace(m, market_rent=0.0))
+    at_one = _final_advantage(scenario, result, replace(m, market_rent=1_000.0))
+    return at_zero, (at_one - at_zero) / 1_000.0
+
+
+def break_even_rent(scenario: Scenario, result: Result, m: MemberInputs) -> float:
+    """Market rent at which project and market-rent path end equally rich."""
+    at_zero, slope = _advantage_line(scenario, result, m)
+    return -at_zero / slope
+
+
+def break_even_grid(
+    scenario: Scenario,
+    result: Result,
+    m: MemberInputs,
+    market_rents: np.ndarray,
+    rate_differences_pp: np.ndarray,
+) -> pd.DataFrame:
+    """Member's advantage at the end for market rents x return gaps, in money of year 1.
+
+    The return gap is the alternative return minus the member loan rate, in
+    percentage points; the project and its required rent stay as in `result`.
+    Positive values mean living in the project leaves the member richer.
+    Rows are return gaps, columns market rents.
+    """
+    rows = {}
+    for gap in rate_differences_pp:
+        variant = replace(m, alt_return=m.member_loan_rate + gap / 100)
+        at_zero, slope = _advantage_line(scenario, result, variant)
+        rows[gap] = at_zero + slope * np.asarray(market_rents, dtype=float)
+    return pd.DataFrame.from_dict(rows, orient="index", columns=list(market_rents))

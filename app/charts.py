@@ -50,6 +50,8 @@ SEQUENTIAL = [
     [0.75, "#1c5cab"],
     [1.0, "#0d366b"],
 ]
+# Diverging pair (dataviz reference): red pole, neutral grey midpoint, blue pole.
+DIVERGING = [[0.0, DIVERGING_NEGATIVE], [0.5, "#f0efec"], [1.0, "#1c5cab"]]
 # Sampled parameters stored as fractions and shown in percent.
 EXPLORE_PERCENT = {
     "vacancy_rate": 100.0,
@@ -562,3 +564,79 @@ def cheapest_profile(cheapest: dict, tr: Translator = GERMAN) -> go.Figure:
     fig.update_yaxes(ticksuffix=" %")
     fig.update_layout(barmode="group", bargap=0.15, bargroupgap=0.05)
     return _explore_axes(fig, tr, tr("chart.explore.cheapest.title"), 640)
+
+
+def break_even(
+    grid: pd.DataFrame,
+    current: tuple[float, float],
+    project_rent: float,
+    tr: Translator = GERMAN,
+) -> go.Figure:
+    """Member's advantage over market rent and return gap, with the exact break-even line.
+
+    Rows of `grid` are return gaps (pp), columns market rents; each row is
+    linear in the market rent, so its zero is found from the first and last
+    column.
+    """
+    rents = np.asarray(grid.columns, dtype=float)
+    gaps = np.asarray(grid.index, dtype=float)
+    z = grid.to_numpy()
+    slope = (z[:, -1] - z[:, 0]) / (rents[-1] - rents[0])
+    zero = rents[0] - z[:, 0] / slope
+    inside = (zero >= rents[0]) & (zero <= rents[-1])
+    limit = np.nanmax(np.abs(z))
+    prefix, suffix = tr.currency_affixes
+    fig = go.Figure()
+    fig.add_heatmap(
+        x=rents,
+        y=gaps,
+        z=z,
+        zmid=0,
+        zmin=-limit,
+        zmax=limit,
+        colorscale=DIVERGING,
+        colorbar={
+            "title": tr("chart.break_even.colorbar"),
+            "tickformat": ",.0f",
+            "tickprefix": prefix,
+            "ticksuffix": suffix,
+        },
+        hovertemplate=(
+            f"{tr('chart.break_even.x')}: {tr.eur_hover('x')}<br>"
+            f"{tr('chart.break_even.y')}: %{{y:.2f}}<br>"
+            f"{tr('chart.break_even.colorbar')}: {tr.eur_hover('z')}<extra></extra>"
+        ),
+        name=tr("chart.break_even.colorbar"),
+    )
+    fig.add_scatter(
+        x=zero[inside],
+        y=gaps[inside],
+        mode="lines",
+        line={"color": INK, "width": 2},
+        name=tr("chart.break_even.line"),
+        hovertemplate=f"{tr('chart.break_even.line')}: {tr.eur_hover('x')}<extra></extra>",
+    )
+    fig.add_scatter(
+        x=[project_rent, project_rent],
+        y=[gaps[0], gaps[-1]],
+        mode="lines",
+        line={"color": INK_SECONDARY, "width": 1, "dash": "dash"},
+        name=tr("chart.break_even.project_rent"),
+        hovertemplate=f"{tr('chart.break_even.project_rent')}: {tr.eur_hover('x')}<extra></extra>",
+    )
+    fig.add_scatter(
+        x=[current[0]],
+        y=[current[1]],
+        mode="markers",
+        marker={"size": 12, "color": INK, "line": {"color": SURFACE, "width": 2}},
+        name=tr("chart.break_even.current"),
+        hovertemplate=f"{tr.eur_hover('x')}, %{{y:.2f}} pp<extra></extra>",
+    )
+    title = f"{tr('chart.break_even.title')}<br><sup>{tr('chart.break_even.subtitle')}</sup>"
+    _explore_axes(fig, tr, title, 480)
+    fig.update_layout(
+        xaxis={**_rent_axis(tr("chart.break_even.x"), tr), "range": [rents[0], rents[-1]]},
+        yaxis={"title": tr("chart.break_even.y"), "range": [gaps[0], gaps[-1]]},
+        legend={"orientation": "h", "y": -0.2, "x": 0},
+    )
+    return fig

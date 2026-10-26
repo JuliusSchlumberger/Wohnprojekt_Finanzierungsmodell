@@ -58,7 +58,10 @@ dazu Rückzahlungen fälliger Direkt- und Mitgliederdarlehen und die Verwendung 
   Gesucht durch Intervallhalbierung auf 1 Cent genau.
 - **Modus 2, Vorsorge**: Vermögen eines Mitglieds im Projekt (angelegte Mietersparnis,
   Rückzahlungen, Einlage real, Darlehen mit Zinseszins) gegenüber Marktmiete mit
-  angelegtem Kapital, beide zur selben Alternativrendite und inflationsbereinigt.
+  angelegtem Kapital, beide zur selben Alternativrendite und inflationsbereinigt. Eine
+  Karte zeigt, ab welcher Marktmiete für ein Zimmer und bei welchem Abstand zwischen
+  Alternativrendite und Zins der Mitgliederdarlehen das Projekt bei Auszug vorne liegt; der
+  Vorteil ist linear in der Marktmiete, der Gleichstand wird daher exakt berechnet.
 - **Modus 3, Zielmiete**: die größte Gesamtinvestition, die eine Zielmiete trägt, begrenzt
   durch die Eigenkapitalanforderung der Bank. Grundstück, Haus und Sanierung werden dafür
   im Verhältnis der Kostenschätzung skaliert.

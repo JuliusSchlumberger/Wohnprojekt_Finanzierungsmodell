@@ -61,7 +61,10 @@ overschot.
 - **Modus 2, leden**: vermogen van een lid in het project (belegde huurbesparing,
   terugbetalingen, inleg reëel, lening met samengestelde rente) vergeleken met markthuur en
   belegd kapitaal, beide tegen hetzelfde alternatieve rendement en gecorrigeerd voor
-  inflatie.
+  inflatie. Een kaart toont vanaf welke markthuur voor een kamer en bij welk verschil
+  tussen alternatief rendement en rente van de ledenleningen het project bij vertrek beter
+  uitkomt; het voordeel is lineair in de markthuur, het omslagpunt wordt daarom exact
+  berekend.
 - **Modus 3, doelhuur**: de grootste totale investering die een doelhuur kan dragen,
   begrensd door de eigenvermogenseis van de bank. Grond, huis en renovatie worden daarvoor
   naar verhouding van de kostenschatting geschaald.

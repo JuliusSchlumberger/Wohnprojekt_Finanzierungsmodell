@@ -17,7 +17,7 @@ from app.widgets import Inputs
 
 DATA_FILE = "exploration.json"
 # Share of the explained spread above which an input counts as acting linearly.
-LINEAR_SHARE = 0.85
+LINEAR_SHARE = 0.9
 FINDING_COUNT = 4
 # Non-linear part of the spread that earns an input its own finding beyond the top ones.
 MIN_NONLINEAR_SHARE = 0.02
@@ -255,6 +255,7 @@ class ExplorationPage(param.Parameterized):
         if self.data is None:
             return pn.pane.Alert(tr("explore.missing"), alert_type="warning")
         meta = self.data["meta"]
+        inflation = tr.pct(meta["defaults"]["inflation"])
         valid = meta["n"] - meta["excluded_bank"] - meta["infeasible"]
         intro = tr(
             "explore.intro",
@@ -270,7 +271,9 @@ class ExplorationPage(param.Parameterized):
             box(
                 tr("explore.ranges_title"),
                 pn.pane.Markdown(assumptions_table(self.data, tr), sizing_mode="stretch_width"),
-                pn.pane.Markdown(tr("explore.ranges_note"), styles={"font-size": "13px"}),
+                pn.pane.Markdown(
+                    tr("explore.ranges_note", inflation=inflation), styles={"font-size": "13px"}
+                ),
             ),
             kpi_grid(self.kpi_items()),
             box(
@@ -298,7 +301,9 @@ class ExplorationPage(param.Parameterized):
             ),
             box(
                 tr("explore.limits_title"),
-                pn.pane.Markdown(tr("explore.limits"), sizing_mode="stretch_width"),
+                pn.pane.Markdown(
+                    tr("explore.limits", inflation=inflation), sizing_mode="stretch_width"
+                ),
             ),
             sizing_mode="stretch_width",
         )

@@ -35,8 +35,8 @@ Ausgabe: Miete €/Person/Monat, €/Jahr gesamt, engstes Jahr; Zeitverlauf von 
 Lösung: Bisektion über die Miete, Zielfunktion = min über Jahre von (Liquidität − Reserve). Monoton, daher robust.
 
 ### Modus 2 – Altersvorsorge-Perspektive
-Eingabe: alle Annahmen aus Modus 1 plus für ein Mitglied: Mitgliedertyp (Voreinstellung),
-Einlage, eigenes Mitgliederdarlehen, Einzugs- und Auszugsjahr, Marktmiete pro Person,
+Eingabe: alle Annahmen aus Modus 1 plus für ein Mitglied: Einlage, eigenes
+Mitgliederdarlehen, Auszugsjahr (Einzug in Jahr 0), Marktmiete pro Person,
 Alternativrendite. Projektmiete = erforderliche Miete aus Modus 1.
 Gesucht: reale Vermögensentwicklung des Mitglieds im Vergleich zur Alternative „Marktmiete
 zahlen, Geld anlegen".
@@ -50,6 +50,10 @@ Ausgabe (alles in Kaufkraft von Jahr 1):
 - Vorsorgevorteil = Differenz, als Zeitreihe und Endwert.
 - Ausfallszenario (Einlage und Darlehen = 0) als gestrichelte Linie.
 - Das einzelne Mitglied wirkt nicht auf die Projektfinanzierung zurück.
+- Gleichstandskarte (`member.break_even_grid`, `break_even_rent`): Vorteil bei Auszug über
+  Marktmiete (0,5- bis 1,9-fache Projektmiete) × Renditedifferenz (Alternativrendite minus
+  Zins Mitgliederdarlehen, −3 bis +6 Pp.). Der Vorteil ist linear in der Marktmiete; je
+  Renditedifferenz genügen zwei Auswertungen, der Gleichstand ist exakt.
 
 ### Modus 3 – Zulässige Investition bei Zielmiete
 Leitfrage: „Wie viel Haus kann sich unsere Gruppe leisten?"
@@ -135,14 +139,14 @@ Panel (bevorzugt) oder marimo; Export nach WebAssembly über `panel convert` bzw
 ### 4.2 Seitenstruktur
 1. **Start** – Zweck, alle Eingaben (gruppiert), die neun Annahmen aus §1, Haftungshinweis. Eingaben sind über alle Seiten geteilt: eine Änderung auf einer Seite gilt sofort überall.
 2. **Modus 1: Miete** – Hauptstellschrauben links (Grundstück, Haus, Sanierung, Kauf/Erbbaurecht, Einlagen, Mitgliederdarlehen, Direktkredite, Förderdarlehen, Bankzins, Inflation) mit automatisch berechnetem Bankdarlehen und Eigenkapitalprüfung; rechts Kennzahlen (Miete €/Person, Jahr der Banktilgung, engstes Jahr) und Diagramme: gestapelte Jahreskosten mit Mietlinie; Restschuld je Darlehen; Liquidität mit Reserve-Linie.
-3. **Modus 2: Vorsorge** – Mitgliedertyp, Einlage, eigenes Mitgliederdarlehen, Ein-/Auszugsjahr, Marktmiete, Alternativrendite; Diagramm reales Vermögen Projekt vs. Alternative, Ausfallszenario gestrichelt; Kennzahlen mit Endwerten.
+3. **Modus 2: Vorsorge** – Einlage, eigenes Mitgliederdarlehen, Auszugsjahr, Marktmiete, Alternativrendite; Diagramm reales Vermögen Projekt vs. Alternative, Ausfallszenario gestrichelt; Gleichstandskarte Marktmiete × Renditedifferenz; Kennzahlen mit Endwerten und Gleichstandsmiete.
 4. **Modus 3: Zielmiete** – Zielmiete pro Person, Eigenmittel, Bankzins, Inflation, Mindestanteil; Ausgabe: zulässige Investition mit bindender Grenze und Anteil der Kostenschätzung; Diagramm: zulässige Investition als Funktion der Zielmiete (Kurve) mit Eigenkapitalgrenze.
 5. **Szenarien** – Dropdown mit Presets (JSON in `scenarios/`), Vergleich von bis zu drei Szenarien nebeneinander, Export/Import des aktuellen Parametersatzes als JSON.
 6. **Methodik** – Rechenlogik in Kurzform, Parameterliste mit Defaults und Quellen, Grenzen des Modells.
 
 ### 4.3 Komplexitätsschichten
 - **Schicht 1 (Startseite, geteilt)**: Grundstück, Haus, Sanierung (Kaufnebenkosten 10 % automatisch), Kauf/Erbbaurecht, Personenzahl, Inflation, A4-Toggle; Einlagen; Mitgliederdarlehen (Betrag, Zins); Direktkredite 5 und 10 Jahre (je Betrag, Zins); Förderdarlehen (höchstens Sanierungskosten); Bank (Zins, Annuität/Ratenkredit, Laufzeit, Zins nach 10 Jahren −1/±0/+1 Prozentpunkt), Mindestanteil Eigenkapital + Nachrang, Zielmiete. Rechtsform-Preset folgt mit Schritt 6.
-- **Schicht 2 (Startseite, ausklappbar „Erweitert“)**: Verwaltung und Versicherung pro Jahr, Mindestreserve (Monatsmieten), maximale Dauer von Rückständen, Kaufnebenkostensatz, Erbbauzinssatz, Zins und Laufzeit der Förderdarlehen, Laufzeit der Mitgliederdarlehen. Keine frei editierbare Darlehensliste und keine Mitgliedertypen-Tabelle: Darlehensarten sind fest, Einlagen und Mitgliederdarlehen gelten pro Person.
+- **Schicht 2 (Startseite, ausklappbar „Erweitert“)**: Verwaltung und Versicherung pro Jahr, Mindestreserve (Monatsmieten), maximale Dauer von Rückständen, Kaufnebenkostensatz, Erbbauzinssatz, Zins und Laufzeit der Förderdarlehen, Laufzeit der Mitgliederdarlehen. Zinsen werden als Abstand zur Inflation (Pp.) eingegeben, der Nominalzins steht unter jedem Regler. Keine frei editierbare Darlehensliste und keine Mitgliedertypen-Tabelle: Darlehensarten sind fest, Einlagen und Mitgliederdarlehen gelten pro Person.
 - **Schicht 3 (eigene Seite „Unsicherheit“)**: Spannen für die acht Eingaben aus §3.4, Anzahl Varianten (50–300), Rechnung nur auf Knopfdruck; Ergebnisse werden als veraltet markiert, sobald sich eine Annahme ändert. Ausgabe: Kennzahlen (Median, Spanne, sichere Miete), Verteilung der Miete, Pufferband, Treiber der Unsicherheit.
 
 ### 4.4 Mitgliedertypen

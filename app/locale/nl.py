@@ -81,8 +81,6 @@ zit.
     "section.direct_loans": "Directe leningen",
     "section.bank": "Bank en subsidie",
     "section.surplus": "Overschot en doelhuur",
-    "section.member_capital": "Lid: kapitaal (modus 2)",
-    "section.member_compare": "Lid: vergelijking (modus 2)",
     "section.adv_operations": "Exploitatie",
     "section.adv_liquidity": "Liquiditeit en achterstanden",
     "section.adv_purchase": "Aankoop en erfpacht",
@@ -117,10 +115,8 @@ zit.
     "label.leasehold_rate_pct": "Erfpachtcanon (%)",
     "label.subsidy_term_years": "Looptijd subsidieleningen (jaar)",
     "label.member_loan_term_years": "Looptijd ledenleningen (jaar)",
-    "label.member_type": "Type lid",
     "label.member_equity": "Inleg (€)",
     "label.member_loan_personal": "Ledenlening (€)",
-    "label.entry_year": "Intrek (jaar)",
     "label.exit_year": "Vertrek (jaar)",
     "label.market_rent": "Markthuur per persoon (€/maand)",
     # Options of choice inputs
@@ -134,10 +130,6 @@ zit.
     "option.surplus_use.rent_reduction": "Huurverlaging",
     "option.surplus_use.payout_15y": "Huurteruggave elke 15 jaar",
     "option.surplus_use.next_project": "Solidariteitsoverdracht",
-    "option.member_type.custom": "Eigen waarden",
-    "option.member_type.low": "Weinig kapitaal",
-    "option.member_type.mid": "Gemiddeld",
-    "option.member_type.high": "Veel",
     # Input explanations
     "info.land_price": (
         "Koopprijs van de grond. Bij erfpacht (Erbbaurecht) wordt die niet gekocht; het "
@@ -179,9 +171,9 @@ zit.
     ),
     "info.subsidy": (
         "Subsidielening (Förderdarlehen, bijv. KfW of een regionale ontwikkelingsbank) als "
-        "annuïteit; rente en looptijd onder „Uitgebreid” (standaard 1,5 % over 30 jaar). "
-        "Alleen bruikbaar voor renovatiekosten, dus hoogstens zo hoog als die. Telt niet als "
-        "quasi-eigen vermogen."
+        "annuïteit; rente en looptijd onder „Uitgebreid” (standaard 0,5 %-punt onder de "
+        "inflatie, 30 jaar). Alleen bruikbaar voor renovatiekosten, dus hoogstens zo hoog als"
+        " die. Telt niet als quasi-eigen vermogen."
     ),
     "info.bank_repayment": (
         "Annuïteit: gelijkblijvende termijn van rente en aflossing, in het begin veel rente. "
@@ -247,10 +239,6 @@ zit.
         "Dit deel van de herbouwwaarde (60 % van huis plus renovatie, zonder grond) wordt "
         "elk jaar opzij gezet en aan onderhoud besteed, stijgend met de inflatie."
     ),
-    "info.member_type": (
-        "Voorinstellingen voor inleg en ledenlening van dit lid. „Eigen waarden” laat de "
-        "waarden vrij instellen."
-    ),
     "info.member_equity": (
         "Inleg van dit lid in geld van vandaag. Die wordt bij intrek geïndexeerd ingebracht "
         "en bij vertrek geïndexeerd terugbetaald."
@@ -259,9 +247,6 @@ zit.
         "Ledenlening van dit lid. Ze groeit met de rente van de ledenleningen en wordt aan "
         "het einde van de looptijd of in het jaar na vertrek inclusief samengestelde rente "
         "terugbetaald."
-    ),
-    "info.entry_year": (
-        "Jaar van intrek, geteld vanaf de start van het project (0 = vanaf het begin)."
     ),
     "info.exit_year": "Jaar van vertrek. Inleg en lening komen het jaar daarna terug.",
     "info.market_rent": (
@@ -299,7 +284,6 @@ zit.
         "Eigen middelen en subsidieleningen ({own}) zijn hoger dan de totale investering "
         "({total}). Verlaag de bedragen."
     ),
-    "error.exit_before_entry": "Het vertrek moet na de intrek liggen.",
     "error.rent_too_low_for_own_funds": (
         "Zelfs een huis ter waarde van jullie eigen middelen ({lower}) heeft meer dan "
         "{target} huur per persoon nodig. Verhoog de doelhuur of pas de eigen middelen aan."
@@ -601,12 +585,6 @@ Vermogen van het lid in de loop van de tijd, gecorrigeerd voor inflatie.
     "chart.curve.hover_investment": "Investering",
     # Additional uncertain inputs
     # Rates relative to inflation, member loan payoff, nominal display
-    "label.member_loan_spread_pp": "Rente ledenleningen (%-punt boven inflatie)",
-    "label.direct_loan_spread_5y_pp": "Rente 5 jaar (%-punt boven inflatie)",
-    "label.direct_loan_spread_10y_pp": "Rente 10 jaar (%-punt boven inflatie)",
-    "label.bank_spread_pp": "Bankrente (%-punt boven inflatie)",
-    "label.subsidy_spread_pp": "Rente subsidieleningen (%-punt boven inflatie)",
-    "label.alt_return_spread_pp": "Alternatief rendement (%-punt boven inflatie)",
     "info.member_loan_spread_pp": (
         "Rente op ledenleningen in procentpunten boven de inflatie; ze wordt bij de "
         "lening bijgeschreven. Voorbeeld: 3 bij 2 % inflatie geeft 5 % rente."
@@ -639,10 +617,6 @@ Vermogen van het lid in de loop van de tijd, gecorrigeerd voor inflatie.
         "Alle rentes worden ten opzichte van de inflatie ingevoerd en bewegen mee; is een"
         " lening eenmaal afgesloten, dan liggen rente en aflossing nominaal vast. Daarom "
         "is meestal het eerste jaar het krapst."
-    ),
-    "summary.rates": (
-        "Nominaal bij {inflation} inflatie: bank {bank} (na 10 jr. {follow_up}), subsidie"
-        " {subsidy}, directe leningen {dk5} / {dk10}, ledenleningen {member}"
     ),
     "label.member_loan_payoff": "Terugbetaling van ledenleningen",
     "info.member_loan_payoff": (
@@ -681,11 +655,6 @@ Vermogen van het lid in de loop van de tijd, gecorrigeerd voor inflatie.
         "betekent: alles wordt afgelost. Geldt ook voor directe leningen die de ledenleningen"
         " aflossen. Directe leningen van 5 jaar worden altijd afgelost."
     ),
-    "option.direct_loan_rollover_pct.0": "0 %",
-    "option.direct_loan_rollover_pct.25": "25 %",
-    "option.direct_loan_rollover_pct.50": "50 %",
-    "option.direct_loan_rollover_pct.75": "75 %",
-    "option.direct_loan_rollover_pct.100": "100 %",
     # Sensitivity report page
     "explore.title": "Gevoeligheids- en onzekerheidsanalyse",
     "explore.intro": (
@@ -700,11 +669,6 @@ Vermogen van het lid in de loop van de tijd, gecorrigeerd voor inflatie.
         "werken hier niet door."
     ),
     "explore.ranges_title": "Gevarieerde aannames",
-    "explore.ranges_note": (
-        "Investering = grond + huis + renovatie. Rentes als opslag boven 2 % inflatie. De "
-        "standaardwaarde is de waarde op de startpagina; die kan buiten de bandbreedte "
-        "liggen."
-    ),
     "explore.col.parameter": "Aanname",
     "explore.col.range": "Bandbreedte",
     "explore.col.default": "Standaardwaarde",
@@ -756,16 +720,6 @@ Vermogen van het lid in de loop van de tijd, gecorrigeerd voor inflatie.
         "De analyse ontbreekt nog. Die wordt eenmalig gemaakt met `python scripts/explore_rent.py`."
     ),
     "explore.limits_title": "Grenzen van de analyse",
-    "explore.limits": (
-        "- De bandbreedtes zijn aannames, geen prognoses; elke waarde erbinnen geldt als even"
-        " waarschijnlijk. De frequenties zeggen dus niets over hoe waarschijnlijk een huur "
-        "is, alleen hoeveel ruimte de aannames laten.\n- Alle andere invoer blijft op de "
-        "standaardwaarden, ook inflatie (2 %), aanvangsleegstand en het terugbetalen van de "
-        "ledenleningen van de rekening.\n- Getoond wordt de benodigde aanvangshuur per persoon"
-        " en maand (zoals modus 1), tot op 50 cent; latere huurverlagingen uit overschotten "
-        "zijn niet meegenomen.\n- Het aandeel in de spreiding beschrijft elke aanname op "
-        "zichzelf; de rest tot 100 % komt uit wisselwerkingen."
-    ),
     "chart.explore.importance.title": "Figuur 1: Welke aanname beweegt de huur hoeveel?",
     "chart.explore.importance.linear": "lineair deel",
     "chart.explore.importance.nonlinear": "niet-lineair deel",
@@ -833,4 +787,63 @@ Vermogen van het lid in de loop van de tijd, gecorrigeerd voor inflatie.
     "explore.param.direct_loan_spread_10y_pp": "Rente directe leningen 10 jr. (pp boven inflatie)",
     "explore.short.direct_loan_spread_10y_pp": "rente directe leningen 10 jr.",
     "explore.unit.direct_loan_spread_10y_pp": "pp",
+    # Start page outline, nominal rates, member break-even
+    "label.member_loan_spread_pp": "Rente ledenleningen (%-punt)",
+    "label.direct_loan_spread_5y_pp": "Rente 5 jaar (%-punt)",
+    "label.direct_loan_spread_10y_pp": "Rente 10 jaar (%-punt)",
+    "label.bank_spread_pp": "Bankrente (%-punt)",
+    "label.subsidy_spread_pp": "Rente subsidieleningen (%-punt)",
+    "label.alt_return_spread_pp": "Alternatief rendement (%-punt)",
+    "summary.nominal": "= {rate} nominaal",
+    "summary.nominal_bank": "= {rate} nominaal, na 10 jaar {follow_up}",
+    "section.member": "Lid (modus 2)",
+    "kpi.break_even.label": "Omslagpunt markthuur",
+    "kpi.break_even.help": (
+        "Vanaf deze markthuur voor een vergelijkbare kamer is het lid bij vertrek uit het "
+        "project rijker dan met markthuur en belegd kapitaal, bij het gekozen alternatieve "
+        "rendement."
+    ),
+    "kpi.break_even.note": "bij {gap} rendementsverschil",
+    "chart.break_even.title": "Project of markthuur: wanneer loont het project?",
+    "chart.break_even.subtitle": "Voordeel van het project bij vertrek, in koopkracht van jaar 1",
+    "chart.break_even.x": "Markthuur voor een kamer (€/maand, jaar 1)",
+    "chart.break_even.y": "Alternatief rendement min rente ledenleningen (%-punt)",
+    "chart.break_even.colorbar": "Voordeel project",
+    "chart.break_even.line": "Omslagpunt",
+    "chart.break_even.current": "gekozen aannames",
+    "chart.break_even.project_rent": "benodigde huur (modus 1)",
+    "help.break_even": (
+        "Onder welke marktomstandigheden is een kamer in het project tegen de benodigde huur "
+        "uit modus 1 de betere keuze? Horizontaal: de markthuur die het lid anders voor een "
+        "vergelijkbare kamer zou betalen; verticaal: hoeveel meer rendement het geld elders "
+        "zou opleveren dan in de ledenlening (procentpunt). De kleur toont het "
+        "vermogensvoordeel bij vertrek: blauw betekent dat het project loont, rood dat "
+        "markthuur en beleggen meer opleveren. De zwarte lijn is het omslagpunt. Rechts "
+        "daarvan is de markthuur zo hoog dat de bespaarde huur het lagere rendement van de "
+        "ledenlening goedmaakt. Hoe groter het rendementsverschil, hoe steiler het "
+        "omslagpunt: bespaard geld rent dan ook beter, maar inleg en lening leveren in het "
+        "project minder op. De stip markeert de gekozen aannames, de gestippelde lijn de "
+        "benodigde huur uit modus 1. Het project zelf blijft gelijk; de rente van de "
+        "ledenleningen wordt op de startpagina gewijzigd."
+    ),
+    "option.direct_loan_rollover_pct.0": "0%",
+    "option.direct_loan_rollover_pct.25": "25%",
+    "option.direct_loan_rollover_pct.50": "50%",
+    "option.direct_loan_rollover_pct.75": "75%",
+    "option.direct_loan_rollover_pct.100": "100%",
+    "explore.ranges_note": (
+        "Investering = grond + huis + renovatie. Rentes als opslag boven {inflation} "
+        "inflatie. De standaardwaarde is de waarde op de startpagina; die kan buiten de "
+        "bandbreedte liggen."
+    ),
+    "explore.limits": (
+        "- De bandbreedtes zijn aannames, geen prognoses; elke waarde erbinnen geldt als even"
+        " waarschijnlijk. De frequenties zeggen dus niets over hoe waarschijnlijk een huur "
+        "is, alleen hoeveel ruimte de aannames laten.\n- Alle andere invoer blijft op de "
+        "standaardwaarden, ook inflatie ({inflation}), aanvangsleegstand en de manier waarop "
+        "de ledenleningen worden afgelost.\n- Getoond wordt de benodigde aanvangshuur per "
+        "persoon en maand (zoals modus 1), tot op 50 cent; latere huurverlagingen uit "
+        "overschotten zijn niet meegenomen.\n- Het aandeel in de spreiding beschrijft elke "
+        "aanname op zichzelf; de rest tot 100 % komt uit wisselwerkingen."
+    ),
 }

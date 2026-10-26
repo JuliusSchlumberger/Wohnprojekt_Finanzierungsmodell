@@ -57,7 +57,10 @@ plus repayments of direct and member loans falling due and the use of the surplu
   the cent.
 - **Mode 2, members**: wealth of a member in the project (invested rent saving, repayments,
   share in real terms, loan with compound interest) compared with market rent and invested
-  capital, both at the same alternative return and adjusted for inflation.
+  capital, both at the same alternative return and adjusted for inflation. A map shows
+  from which market rent for a room, and at which gap between the alternative return and
+  the member loan rate, the project comes out ahead at moving out; the advantage is
+  linear in the market rent, so the break-even is calculated exactly.
 - **Mode 3, target rent**: the largest total investment a target rent can carry, limited by
   the bank's equity requirement. Land, house and renovation are scaled in proportion to the
   cost estimate.
